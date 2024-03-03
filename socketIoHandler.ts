@@ -2,12 +2,12 @@ import { Server } from "socket.io";
 
 enum SocketEvents {
 	AVAILABLE_ROOMS = "availableRooms",
-	MESSAGE = "message",
 	CREATE_ROOM = "createRoom",
 	JOIN_ROOM = "joinRoom",
 	ROOM_READY = "roomReady",
 	YOUR_ROOM = "yourRoom",
-	SHOOT = "shoot"
+	SHOOT = "shoot",
+	AFTER_CONNECT = "afterConnect"
 }
 
 enum ShipType {
@@ -55,6 +55,11 @@ function checkDestroyedShip(ships: Ship[], destroyedShips: Ship[], shots: Shot[]
 	return [...destroyedShips, ...(newShip ? [newShip] : [])];
 }
 
+type PlayerRoom = {
+	socketId: string;
+	nick: string;
+};
+
 class Player {
 	id: string;
 	nick: string;
@@ -98,54 +103,68 @@ class Player {
 }
 
 class Game {
-	playerOne: Player;
-	playerTwo: Player;
-	playerTurn: string | null = null;
+	players: Player[];
+	playerTurn: string | null;
 
-	constructor(playerOne: Player, playerTwo: Player) {
-		this.playerOne = playerOne;
-		this.playerTwo = playerTwo;
-		this.playerTurn = playerOne.nick;
+	constructor() {
+		this.players = [];
+		this.playerTurn = null;
+	}
+
+	addPlayer(player: Player) {
+		if (this.players.length < 2) {
+			this.players.push(player);
+
+			if (this.players.length === 2) {
+				this.playerTurn = this.players[0].nick;
+			}
+		}
+	}
+
+	setPlayerIdByNick(nick: string, id: string) {
+		const player = this.players.find((p) => p.nick === nick);
+
+		if (player) {
+			player.id = id;
+		}
 	}
 
 	public getStatForPlayer(nick: string) {
-		const selectedPlayer = this.playerOne.nick === nick ? this.playerOne : this.playerTwo;
+		const selectedPlayer = this.players.find((p) => p.nick === nick);
 
 		return {
-			playerData: selectedPlayer.getData(),
+			playerData: selectedPlayer?.getData() ?? null,
 			playerTurn: this.playerTurn
 		};
 	}
 
+	public getPlayersStats() {
+		return this.players.map((player) => ({
+			playerData: player.getData(),
+			playerTurn: this.playerTurn
+		}));
+	}
+
 	public play(playerNick: string, shotCoordinate: Coordinate) {
-		if (this.playerOne.nick === playerNick) {
-			const hit = checkHit(this.playerTwo.ships, shotCoordinate);
+		const selectedPlayer = this.players.find((p) => p.nick === playerNick);
+		const otherPlayer = this.players.find((p) => p.nick !== playerNick);
 
-			this.playerOne.setShot({
-				coords: shotCoordinate,
-				hit
-			});
-			this.playerOne.destroyedShips = checkDestroyedShip(
-				this.playerTwo.ships,
-				this.playerOne.destroyedShips,
-				this.playerOne.shots
-			);
-			this.playerTwo.checkShips(shotCoordinate);
-			this.playerTurn = this.playerTwo.nick;
-		} else {
-			const hit = checkHit(this.playerOne.ships, shotCoordinate);
+		if (selectedPlayer && otherPlayer) {
+			const selectedPlayerHit = checkHit(otherPlayer.ships, shotCoordinate);
 
-			this.playerTwo.setShot({
+			selectedPlayer.setShot({
 				coords: shotCoordinate,
-				hit
+				hit: selectedPlayerHit
 			});
-			this.playerTwo.destroyedShips = checkDestroyedShip(
-				this.playerOne.ships,
-				this.playerTwo.destroyedShips,
-				this.playerTwo.shots
+
+			selectedPlayer.destroyedShips = checkDestroyedShip(
+				otherPlayer.ships,
+				selectedPlayer.destroyedShips,
+				selectedPlayer.shots
 			);
-			this.playerOne.checkShips(shotCoordinate);
-			this.playerTurn = this.playerTwo.nick;
+
+			otherPlayer.checkShips(shotCoordinate);
+			this.playerTurn = selectedPlayerHit ? selectedPlayer.nick : otherPlayer.nick;
 		}
 	}
 }
@@ -153,32 +172,85 @@ class Game {
 export default function injectSocketIO(server: any) {
 	const io = new Server(server);
 
-	const rooms: Map<string, Player[]> = new Map();
-	const games: Map<string, Game> = new Map();
+	const rooms: Map<string, Game> = new Map();
+	const disconnectTimeouts = new Map(); // Map of client ID to disconnect timers
+	// const games: Map<string, Game> = new Map();
 
 	io.on("connection", (socket) => {
 		let room = "";
+		let playerNick = "";
+		let board = null;
 
-		io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+		socket.on(SocketEvents.AFTER_CONNECT, ({ roomId, nick }) => {
+			playerNick = nick;
+
+			console.log("CONNNECT", roomId, nick, rooms);
+
+			if (roomId && rooms.get(roomId)) {
+				room = roomId;
+				const selectedRoom = rooms.get(room);
+
+				if (selectedRoom) {
+					room = roomId;
+					socket.join(room);
+
+
+					selectedRoom.setPlayerIdByNick(nick, socket.id);
+
+					clearTimeout(disconnectTimeouts.get(nick));
+					disconnectTimeouts.delete(nick);
+
+					io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
+						room,
+						data: selectedRoom.getStatForPlayer(nick),
+						availableRooms: []
+					});
+				}
+			} else {
+				io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
+					room,
+					data: null,
+					availableRooms: [...rooms.keys()]
+				});
+				// io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+			}
+		});
 
 		socket.on("disconnect", () => {
 			console.log("A user disconnected");
 			if (room) {
-				const index = rooms.get(room)?.findIndex((r) => r.id === socket.id) ?? -1;
-				if (index !== -1) {
-					rooms.get(room)?.splice(index, 1);
-				}
-				if (rooms.get(room)?.length === 0) {
-					rooms.delete(room);
-				}
+				// const index = rooms.get(room)?.findIndex((r) => r.socketId === socket.id) ?? -1;
+				// if (index !== -1) {
+				// 	rooms.get(room)?.splice(index, 1);
+				// }
+				// if (rooms.get(room)?.length === 0) {
+				// 	rooms.delete(room);
+				// }
 				socket.to(room).emit("userDisconnected");
-				io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+
+				// Set a timeout to remove the user from rooms if not reconnected within 30 seconds
+				const timeoutId = setTimeout(() => {
+					const selectedRoom = rooms.get(room);
+
+					if (selectedRoom) {
+						socket.rooms.delete(room);
+						rooms.delete(room);
+					}
+				}, 30000); // 30 seconds
+
+				// Store the disconnect timer for later reference
+				disconnectTimeouts.set(playerNick, timeoutId);
+				// io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
 			}
 		});
 
-		socket.on(SocketEvents.CREATE_ROOM, ({ nick, board }) => {
+		socket.on(SocketEvents.CREATE_ROOM, ({ nick, board: playerBoard }) => {
 			room = nick;
-			rooms.set(room, [new Player(socket.id, nick, board)]);
+			board = playerBoard;
+			const game = new Game();
+			game.addPlayer(new Player(socket.id, nick, playerBoard));
+
+			rooms.set(room, game);
 
 			socket.join(room);
 			// rooms.get(room)!.push({id: userId, board});
@@ -190,39 +262,39 @@ export default function injectSocketIO(server: any) {
 		socket.on(SocketEvents.JOIN_ROOM, ({ room: roomId, nick, board }) => {
 			const selectedRoom = rooms.get(roomId);
 
-			if (selectedRoom && selectedRoom.length === 1) {
+			if (selectedRoom) {
 				room = roomId;
 				socket.join(room);
-				selectedRoom.push(new Player(socket.id, nick, board));
+				selectedRoom.addPlayer(new Player(socket.id, nick, board));
 
-				games.set(roomId, new Game(selectedRoom[0], selectedRoom[1]));
+				// games.set(roomId, new Game(selectedRoom[0], selectedRoom[1]));
 
 				io.to(socket.id).emit(SocketEvents.YOUR_ROOM, roomId);
 
-				console.log("SSS", selectedRoom)
+				console.log("SSS", selectedRoom);
 
-				selectedRoom.forEach((player) => {
-					io.to(player.id).emit(SocketEvents.ROOM_READY, {
+				selectedRoom.getPlayersStats().forEach((player) => {
+					io.to(player.playerData.id).emit(SocketEvents.ROOM_READY, {
 						room,
-						game: games.get(roomId)?.getStatForPlayer(player.nick)
+						game: player
 					});
 				});
 			}
 		});
 
 		socket.on(SocketEvents.SHOOT, ({ nick, shot }: { nick: string; shot: Coordinate }) => {
-			const game = games.get(room);
+			// const game = games.get(room);
 			const selectedRoom = rooms.get(room);
 
 			if (selectedRoom) {
-				game?.play(nick, shot);
+				selectedRoom.play(nick, shot);
 
-				console.log("RESS", nick, shot, game);
+				console.log("RESS", nick, shot, selectedRoom);
 
-				selectedRoom.forEach((player) => {
-					io.to(player.id).emit(SocketEvents.SHOOT, {
+				selectedRoom.getPlayersStats().forEach((player) => {
+					io.to(player.playerData.id).emit(SocketEvents.SHOOT, {
 						room,
-						game: games.get(room)?.getStatForPlayer(player.nick)
+						game: player
 					});
 				});
 			}

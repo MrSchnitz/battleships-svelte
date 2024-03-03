@@ -8,9 +8,10 @@
 	export let x: number;
 	export let y: number;
 	export let onClick: (x: number, y: number) => void;
-	export let isSelected: boolean | undefined;
+	export let isSelected: boolean | undefined = false;
 	export let isHit: boolean | null = null;
 	export let isMiss: boolean | null = null;
+	export let isDestroyed: boolean | null = null;
 
 	function onMouseEnter() {
 		isHovered = true;
@@ -25,7 +26,8 @@
 	class={classNames("cell", {
 		"cell--selected": isHovered || isSelected,
 		"cell--hit": isHit,
-		"cell--miss": isMiss
+		"cell--miss": isMiss,
+		"cell--destroyed": isDestroyed
 	})}
 	on:mouseenter={onMouseEnter}
 	on:mouseleave={onMouseLeave}
@@ -46,6 +48,10 @@
 	}
 	.cell--miss {
 		outline: 3px solid yellow;
+		cursor: pointer;
+	}
+	.cell--destroyed {
+		outline: 3px solid purple !important;
 		cursor: pointer;
 	}
 </style>

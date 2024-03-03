@@ -27,10 +27,10 @@
 					y={item.y}
 					isHit={shots.find(
 						(shot) => shot.coords.x === item.x && shot.coords.y === item.y && shot.hit
-					) ||
-						destroyedShips.find((ship) =>
-							ship.coords.find((c) => c.x === item.x && c.y === item.y)
-						)}
+					)}
+					isDestroyed={destroyedShips.find((ship) =>
+						ship.coords.find((c) => c.x === item.x && c.y === item.y)
+					)}
 					isMiss={shots.find(
 						(shot) => shot.coords.x === item.x && shot.coords.y === item.y && !shot.hit
 					)}

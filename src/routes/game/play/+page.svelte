@@ -5,22 +5,24 @@
 	import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
 	import EnemyPlayBoard from "$lib/components/EnemyPlayBoard.svelte";
 
-	const { playerNick, board } = getContext("gameSetupContext");
-
 	enum SocketEvents {
 		AVAILABLE_ROOMS = "availableRooms",
 		CREATE_ROOM = "createRoom",
 		JOIN_ROOM = "joinRoom",
 		ROOM_READY = "roomReady",
 		YOUR_ROOM = "yourRoom",
-		SHOOT = "shoot"
+		SHOOT = "shoot",
+		AFTER_CONNECT = "afterConnect"
 	}
+
+	const { playerNick, board } = getContext("gameSetupContext");
 
 	const ARR_SIZE = 10;
 
-	let input = "";
+	let nick = localStorage.getItem("nick") ?? "";
+
 	let rooms = [];
-	let yourRoom = null;
+	let yourRoom = sessionStorage.getItem("room") ?? null;
 	let game = null;
 
 	onMount(() => {
@@ -31,6 +33,7 @@
 		io.on(SocketEvents.YOUR_ROOM, (room) => {
 			console.log("HMMMMM", room);
 			yourRoom = room;
+			sessionStorage.setItem("room", room);
 		});
 		io.on(SocketEvents.ROOM_READY, (data) => {
 			console.log("GGG", data);
@@ -40,6 +43,16 @@
 			console.log("SHOT", res);
 			game = res.game;
 		});
+		io.on(SocketEvents.AFTER_CONNECT, ({ room, data, availableRooms }) => {
+			console.log("AFTER_CONNECT", room, data, availableRooms);
+			yourRoom = room;
+			sessionStorage.setItem("room", room);
+			game = data;
+			rooms = [...availableRooms];
+		});
+
+		console.log("Your room", yourRoom, nick, $playerNick);
+		io.emit(SocketEvents.AFTER_CONNECT, { roomId: yourRoom, nick });
 	});
 
 	function onCreateRoom() {
@@ -64,7 +77,7 @@
 </script>
 
 <div class="h-screen flex">
-	<div class="h-full min-w-[300px]">
+	<div class="h-full min-w-[200px]">
 		<div class="card h-full">
 			<h3 class="h3">Nick: <strong>{$playerNick}</strong></h3>
 			{#if yourRoom}
@@ -110,7 +123,7 @@
 			<EnemyPlayBoard
 				size={ARR_SIZE}
 				shots={game ? game.playerData.shots : []}
-				destroyedShips={[]}
+				destroyedShips={game ? game.playerData.destroyedShips : []}
 				{onClick}
 				label="enemy ships"
 				noActions={!game || game.playerTurn !== $playerNick}
