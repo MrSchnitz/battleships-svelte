@@ -32,7 +32,7 @@ type ShipCoordinate = Coordinate & { hit: boolean };
 
 export type Ship = { type: ShipType; coords: ShipCoordinate[] };
 
-type Shot = {
+export type Shot = {
 	coords: Coordinate;
 	hit: boolean;
 };

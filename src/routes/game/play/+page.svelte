@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Box, Button, Center, Container, Flex, Input, Text } from "@svelteuidev/core";
 	import PlayBoard from "$lib/components/PlayBoard.svelte";
 	import { getContext, onMount } from "svelte";
 	import { io } from "$lib/weSocketConnection";
 	import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
+	import EnemyPlayBoard from "$lib/components/EnemyPlayBoard.svelte";
 
 	const { playerNick, board } = getContext("gameSetupContext");
 
@@ -104,17 +104,16 @@
 			<PlayBoard
 				size={ARR_SIZE}
 				ships={game ? game.playerData.ships : $board}
-				{onClick}
 				label="Your ships"
 				noActions={true}
 			/>
-			<PlayBoard
+			<EnemyPlayBoard
 				size={ARR_SIZE}
-				ships={game ? game.playerData.shots : []}
+				shots={game ? game.playerData.shots : []}
+				destroyedShips={[]}
 				{onClick}
 				label="enemy ships"
 				noActions={!game || game.playerTurn !== $playerNick}
-				isHit={true}
 			/>
 		</div>
 	</div>

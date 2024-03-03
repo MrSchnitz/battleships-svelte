@@ -10,6 +10,7 @@
 	export let onClick: (x: number, y: number) => void;
 	export let isSelected: boolean | undefined;
 	export let isHit: boolean | null = null;
+	export let isMiss: boolean | null = null;
 
 	function onMouseEnter() {
 		isHovered = true;
@@ -23,8 +24,8 @@
 <div
 	class={classNames("cell", {
 		"cell--selected": isHovered || isSelected,
-		"cell--hit": isHit !== null && isHit,
-		"cell--miss": isHit !== null && !isHit
+		"cell--hit": isHit,
+		"cell--miss": isMiss
 	})}
 	on:mouseenter={onMouseEnter}
 	on:mouseleave={onMouseLeave}

@@ -18,7 +18,7 @@
 		console.log("HMMM", playerNick)
 
 		gameSetup.set({
-			isGameSet: false,
+			isGameSet: board.length > 0,
 			playerNick,
 			board
 		});

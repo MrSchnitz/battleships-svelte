@@ -3,9 +3,9 @@
 	import { goto } from "$app/navigation";
 	import { getContext } from "svelte";
 
-	const { playerNick, setPlayerNick } = getContext("gameSetupContext");
+	const { isGameSet, playerNick, setPlayerNick } = getContext("gameSetupContext");
 
-	let nickInput = "";
+	let nickInput = $playerNick;
 	let showContinue = false;
 
 	$: {
@@ -14,7 +14,11 @@
 	}
 
 	function onContinueClick() {
-		setPlayerNick(nickInput, () => goto("game/create"));
+		if ($isGameSet) {
+			setPlayerNick(nickInput, () => goto("game/play"));
+		} else {
+			setPlayerNick(nickInput, () => goto("game/create"));
+		}
 	}
 </script>
 

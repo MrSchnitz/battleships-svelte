@@ -1,13 +1,14 @@
 <script lang="ts">
 	import Cell from "./CellPlay.svelte";
 	import classNames from "classnames";
-	import type { Ship } from "$lib/const/types";
 	import { create2DArray } from "$lib/util";
+	import type { Ship, Shot } from "../../../socketIoHandler";
 
 	export let size: number = 0;
 	export let label: string = "";
 	export let noActions: boolean = false;
-	export let ships: Ship[] = [];
+	export let shots: Shot[] = [];
+	export let destroyedShips: Ship[] = [];
 	export let onClick: (x: number, y: number) => void;
 
 	const cellArray = create2DArray(size);
@@ -24,8 +25,14 @@
 				<Cell
 					x={item.x}
 					y={item.y}
-					isSelected={ships.find((selectedShip) =>
-						selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
+					isHit={shots.find(
+						(shot) => shot.coords.x === item.x && shot.coords.y === item.y && shot.hit
+					) ||
+						destroyedShips.find((ship) =>
+							ship.coords.find((c) => c.x === item.x && c.y === item.y)
+						)}
+					isMiss={shots.find(
+						(shot) => shot.coords.x === item.x && shot.coords.y === item.y && !shot.hit
 					)}
 					{onClick}
 				/>

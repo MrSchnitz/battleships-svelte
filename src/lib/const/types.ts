@@ -1,3 +1,5 @@
+import type {Coordinate} from "../../../socketIoHandler";
+
 export enum ShipType {
 	Carrier = "Carrier",
 	Battleship = "Battleship",
