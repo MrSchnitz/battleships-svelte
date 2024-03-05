@@ -1,6 +1,6 @@
-import http from 'http';
-import express from 'express';
-import injectSocketIO from './socketIoHandler.js';
+import * as http from 'http';
+import * as express from 'express';
+import injectSocketIO from './server/socketIoHandler.js';
 import { handler } from './build/handler.js';
 
 const app = express();

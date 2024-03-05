@@ -4,16 +4,7 @@
 	import { io } from "$lib/weSocketConnection";
 	import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
 	import EnemyPlayBoard from "$lib/components/EnemyPlayBoard.svelte";
-
-	enum SocketEvents {
-		AVAILABLE_ROOMS = "availableRooms",
-		CREATE_ROOM = "createRoom",
-		JOIN_ROOM = "joinRoom",
-		ROOM_READY = "roomReady",
-		YOUR_ROOM = "yourRoom",
-		SHOOT = "shoot",
-		AFTER_CONNECT = "afterConnect"
-	}
+	import { SocketEvents } from "../../../../common/types";
 
 	const { playerNick, board } = getContext("gameSetupContext");
 

@@ -1,8 +1,8 @@
-import injectSocketIO from "./socketIoHandler";
+import injectSocketIO from "./server/server";
 
 export const webSocketServer = {
     name: 'webSocketServer',
-    configureServer(server) {
+    configureServer(server: any) {
         injectSocketIO(server.httpServer);
     }
 };

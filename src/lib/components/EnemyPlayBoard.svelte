@@ -2,7 +2,7 @@
 	import Cell from "./CellPlay.svelte";
 	import classNames from "classnames";
 	import { create2DArray } from "$lib/util";
-	import type { Ship, Shot } from "../../../socketIoHandler";
+	import type { Ship, Shot } from "../../../server/socketIoHandler";
 
 	export let size: number = 0;
 	export let label: string = "";

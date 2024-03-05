@@ -3,7 +3,7 @@
 	import classNames from "classnames";
 	import type { Ship } from "$lib/const/types";
 	import { create2DArray } from "$lib/util";
-	import type { Shot } from "../../../socketIoHandler";
+	import type { Shot } from "../../../server/socketIoHandler";
 
 	export let size: number = 0;
 	export let label: string = "";
