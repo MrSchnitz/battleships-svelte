@@ -27,4 +27,4 @@ export type ShipDragDimension = {
 	right: number | null;
 };
 
-export type Ship = { type: ShipType; coords: ShipCoordinates[] };
+export type Ship = { type: ShipType; coords: ShipCoordinates[], destroyed: boolean };

@@ -35,7 +35,7 @@
 		if (isOnDuplicated) {
 			alert('Tady to nejde!');
 		} else if (hoveredCells.length > 0 && hoveredCells.length === SHIP_SPACES[shipType]) {
-			addShip({ type: shipType, coords: hoveredCells });
+			addShip({ type: shipType, coords: hoveredCells, destroyed: false });
 		}
 
 		dragPosition = { top: null, bottom: null, left: null, right: null };

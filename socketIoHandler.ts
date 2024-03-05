@@ -30,7 +30,7 @@ export type Coordinate = { x: number; y: number };
 
 type ShipCoordinate = Coordinate & { hit: boolean };
 
-export type Ship = { type: ShipType; coords: ShipCoordinate[] };
+export type Ship = { type: ShipType; coords: ShipCoordinate[]; destroyed: boolean };
 
 export type Shot = {
 	coords: Coordinate;
@@ -65,6 +65,7 @@ class Player {
 	nick: string;
 	ships: Ship[];
 	shots: Shot[];
+	enemyShots: Shot[];
 	destroyedShips: Ship[];
 
 	constructor(id: string, nick: string, ships: Ship[]) {
@@ -72,6 +73,7 @@ class Player {
 		this.nick = nick;
 		this.ships = ships;
 		this.shots = [];
+		this.enemyShots = [];
 		this.destroyedShips = [];
 	}
 
@@ -79,7 +81,11 @@ class Player {
 		this.shots.push(shot);
 	}
 
-	checkShips(shotCoordinate: Coordinate) {
+	setEnemyShot(shot: Shot) {
+		this.enemyShots.push(shot);
+	}
+
+	checkShipHit(shotCoordinate: Coordinate) {
 		this.ships.forEach((ship) => {
 			const hitCoordinateIndex = ship.coords.findIndex(
 				(c) => c.x === shotCoordinate.x && c.y === shotCoordinate.y
@@ -91,12 +97,21 @@ class Player {
 		});
 	}
 
+	checkShipDestroy(destroyedShips: Ship[]) {
+		this.ships.forEach((ship) => {
+			if (destroyedShips.some((destroyedShip) => destroyedShip.type === ship.type)) {
+				ship.destroyed = true;
+			}
+		});
+	}
+
 	getData() {
 		return {
 			id: this.id,
 			nick: this.nick,
 			ships: this.ships,
 			shots: this.shots,
+			enemyShots: this.enemyShots,
 			destroyedShips: this.destroyedShips
 		};
 	}
@@ -152,18 +167,23 @@ class Game {
 		if (selectedPlayer && otherPlayer) {
 			const selectedPlayerHit = checkHit(otherPlayer.ships, shotCoordinate);
 
-			selectedPlayer.setShot({
+			const shot = {
 				coords: shotCoordinate,
 				hit: selectedPlayerHit
-			});
+			};
+			selectedPlayer.setShot(shot);
 
-			selectedPlayer.destroyedShips = checkDestroyedShip(
+			const destroyedShips = checkDestroyedShip(
 				otherPlayer.ships,
 				selectedPlayer.destroyedShips,
 				selectedPlayer.shots
 			);
+			selectedPlayer.destroyedShips = destroyedShips;
 
-			otherPlayer.checkShips(shotCoordinate);
+			otherPlayer.setEnemyShot(shot);
+			otherPlayer.checkShipHit(shotCoordinate);
+			otherPlayer.checkShipDestroy(destroyedShips);
+
 			this.playerTurn = selectedPlayerHit ? selectedPlayer.nick : otherPlayer.nick;
 		}
 	}
@@ -174,7 +194,6 @@ export default function injectSocketIO(server: any) {
 
 	const rooms: Map<string, Game> = new Map();
 	const disconnectTimeouts = new Map(); // Map of client ID to disconnect timers
-	// const games: Map<string, Game> = new Map();
 
 	io.on("connection", (socket) => {
 		let room = "";
@@ -194,7 +213,6 @@ export default function injectSocketIO(server: any) {
 					room = roomId;
 					socket.join(room);
 
-
 					selectedRoom.setPlayerIdByNick(nick, socket.id);
 
 					clearTimeout(disconnectTimeouts.get(nick));
@@ -212,7 +230,6 @@ export default function injectSocketIO(server: any) {
 					data: null,
 					availableRooms: [...rooms.keys()]
 				});
-				// io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
 			}
 		});
 

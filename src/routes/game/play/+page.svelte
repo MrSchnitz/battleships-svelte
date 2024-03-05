@@ -19,7 +19,7 @@
 
 	const ARR_SIZE = 10;
 
-	let nick = localStorage.getItem("nick") ?? "";
+	let nick = sessionStorage.getItem("nick") ?? "";
 
 	let rooms = [];
 	let yourRoom = sessionStorage.getItem("room") ?? null;
@@ -117,6 +117,7 @@
 			<PlayBoard
 				size={ARR_SIZE}
 				ships={game ? game.playerData.ships : $board}
+				enemyShots={game ? game.playerData.enemyShots : []}
 				label="Your ships"
 				noActions={true}
 			/>

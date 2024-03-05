@@ -12,10 +12,8 @@
 	});
 
 	onMount(() => {
-		const playerNick = localStorage.getItem("nick") ?? "";
-		const board = JSON.parse(localStorage.getItem("board")) ?? [];
-
-		console.log("HMMM", playerNick)
+		const playerNick = sessionStorage.getItem("nick") ?? "";
+		const board = JSON.parse(sessionStorage.getItem("board")) ?? [];
 
 		gameSetup.set({
 			isGameSet: board.length > 0,
@@ -44,13 +42,13 @@
 
 	function setPlayerNick(value, callback) {
 		gameSetup.update((state) => ({ ...state, playerNick: value }));
-		localStorage.setItem("nick", value);
+		sessionStorage.setItem("nick", value);
 		callback();
 	}
 
 	function setBoard(value) {
 		gameSetup.update((state) => ({ ...state, board: value }));
-		localStorage.setItem("board", JSON.stringify(value));
+		sessionStorage.setItem("board", JSON.stringify(value));
 	}
 
 	setContext("gameSetupContext", {
@@ -70,14 +68,6 @@
 	}
 
 	console.log("PPP", $gameSetup.playerNick)
-
-	// if (window.location.pathname === "/game") {
-	// 	if (!$isGameSet) {
-	// 		window.location.href = "/game/create"
-	// 	} else {
-	// 		window.location.href = "/game/play"
-	// 	}
-	// }
 </script>
 
 <div class="w-full">
