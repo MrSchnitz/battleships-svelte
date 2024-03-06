@@ -1,15 +1,23 @@
 <script lang="ts">
-	import Cell from './CellCreate.svelte';
-	import classNames from 'classnames';
-	import ShipCreator from '$lib/components/ShipCreator.svelte';
-	import type {Ship, ShipCoordinates, ShipDragDimension} from '$lib/const/types';
-	import { DEFAULT_SHIPS, SHIP_SPACES, ShipType } from '$lib/const/types';
-	import ShipDrag from '$lib/components/ShipDrag.svelte';
-	import { create2DArray } from '$lib/util';
+	import Cell from "./CellCreate.svelte";
+	import classNames from "classnames";
+	import ShipCreator from "$lib/components/ShipCreator.svelte";
+	import ShipDrag from "$lib/components/ShipDrag.svelte";
+	import { create2DArray } from "$lib/util";
+	import {
+		DEFAULT_SHIPS,
+		SHIP_SPACES,
+	} from "../../../common/types";
+	import type {
+		Ship,
+		ShipCoordinate,
+		ShipType
+	} from "../../../common/types";
+	import type { ShipDragDimension } from "$lib/const/types";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
-	let hoveredCells: ShipCoordinates[] = [];
+	let hoveredCells: ShipCoordinate[] = [];
 	let isOnDuplicated: boolean = false;
 	let shipToDelete: Ship | null = null;
 	let mousePosition: { x: number; y: number } | null = null;
@@ -33,7 +41,7 @@
 
 	function onShipDragMouseUp(shipType: ShipType) {
 		if (isOnDuplicated) {
-			alert('Tady to nejde!');
+			alert("Tady to nejde!");
 		} else if (hoveredCells.length > 0 && hoveredCells.length === SHIP_SPACES[shipType]) {
 			addShip({ type: shipType, coords: hoveredCells, destroyed: false });
 		}
@@ -83,7 +91,7 @@
 		isOnDuplicated = isDuplicated;
 	}
 
-	document.addEventListener('mousemove', (event) => {
+	document.addEventListener("mousemove", (event) => {
 		if (shipToDelete) {
 			mousePosition = {
 				x: event.clientX,
@@ -94,8 +102,8 @@
 		}
 	});
 
-	document.addEventListener('click', (event) => {
-		if (shipToDelete && confirm('Opravdu smazat lod?')) {
+	document.addEventListener("click", (event) => {
+		if (shipToDelete && confirm("Opravdu smazat lod?")) {
 			removeShip(shipToDelete);
 			shipToDelete = null;
 		}
@@ -116,7 +124,7 @@
 			{/each}
 		</div>
 		<div
-			class={classNames('relative grid gap-0 place-content-center')}
+			class={classNames("relative grid gap-0 place-content-center")}
 			style="grid-template-columns: repeat({size}, min-content)"
 		>
 			{#each cellArray as cell}

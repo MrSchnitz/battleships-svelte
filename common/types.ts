@@ -27,6 +27,8 @@ export const SHIP_SPACES = {
 	[ShipType.Destroyer]: 2
 } as const;
 
+export const DEFAULT_SHIPS = Object.keys(ShipType);
+
 export type Coordinate = { x: number; y: number };
 
 export type ShipCoordinate = Coordinate & { hit: boolean };

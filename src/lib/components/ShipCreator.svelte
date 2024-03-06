@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { ShipType } from '$lib/const/types';
-	import CellStyled from '$lib/components/CellStyled.svelte';
-	import { SHIP_SPACES } from '$lib/const/types';
+	import CellStyled from "$lib/components/CellStyled.svelte";
+	import { ShipType, SHIP_SPACES } from "../../../common/types";
 
 	export let type: ShipType;
 </script>

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import {derived, writable} from "svelte/store";
+	import { derived, writable } from "svelte/store";
 	import { onMount, setContext } from "svelte";
-	import type { Ship } from "$lib/const/types";
-	import { DEFAULT_SHIPS } from "$lib/const/types";
+	import type { Ship } from "../../../common/types";
+	import { DEFAULT_SHIPS } from "../../../common/types";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -67,7 +67,7 @@
 		}));
 	}
 
-	console.log("PPP", $gameSetup.playerNick)
+	console.log("PPP", $gameSetup.playerNick);
 </script>
 
 <div class="w-full">

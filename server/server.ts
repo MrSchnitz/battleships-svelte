@@ -48,6 +48,27 @@ export default function injectSocketIO(server: any) {
 			}
 		});
 
+		socket.on(SocketEvents.APPLY_DISCONNECT, () => {
+			const selectedRoom = [...rooms.keys()].find((r) => r === room);
+
+			if (selectedRoom) {
+				socket.leave(selectedRoom);
+				rooms.delete(room);
+				io.to(selectedRoom).emit(SocketEvents.PLAYER_DISCONNECTED, {
+					room: null,
+					data: null,
+					availableRooms: [...rooms.keys()]
+				});
+				socket.rooms.delete(room);
+				room = "";
+				io.to(socket.id).emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+			}
+		});
+
+		socket.on(SocketEvents.AVAILABLE_ROOMS, () => {
+			io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+		});
+
 		socket.on(SocketEvents.DISCONNECT, () => {
 			console.log("A user disconnected");
 			if (room) {

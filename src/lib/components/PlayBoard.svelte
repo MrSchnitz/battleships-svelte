@@ -1,9 +1,8 @@
 <script lang="ts">
 	import Cell from "./CellPlay.svelte";
 	import classNames from "classnames";
-	import type { Ship } from "$lib/const/types";
 	import { create2DArray } from "$lib/util";
-	import type { Shot } from "../../../server/socketIoHandler";
+	import type { Ship, Shot } from "../../../common/types";
 
 	export let size: number = 0;
 	export let label: string = "";

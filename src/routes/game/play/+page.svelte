@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PlayBoard from "$lib/components/PlayBoard.svelte";
 	import { getContext, onMount } from "svelte";
+	import classNames from "classnames";
 	import { io } from "$lib/weSocketConnection";
 	import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
 	import EnemyPlayBoard from "$lib/components/EnemyPlayBoard.svelte";
@@ -9,30 +10,51 @@
 	const { playerNick, board } = getContext("gameSetupContext");
 
 	const ARR_SIZE = 10;
+	const TIMEOUT = 1000; // ms
 
 	let nick = sessionStorage.getItem("nick") ?? "";
 
 	let rooms = [];
-	let yourRoom = sessionStorage.getItem("room") ?? null;
+	let yourRoom: string | null = sessionStorage.getItem("room") ?? null;
 	let game = null;
+	let playerTurnTimeout = null;
+	let timer = 10;
+	let timeout = false
+
+	function setGame(newGame: any) {
+		game = newGame;
+		timer = 10;
+		if (newGame && game.playerTurn === $playerNick) {
+			console.log("SETTT");
+			playerTurnTimeout = setInterval(() => {
+				console.log("TIMER", timer);
+				timer--;
+			}, TIMEOUT);
+		}
+	}
+
+	$: {
+		if (timer <= 0) {
+			timeout = true
+			timer = 10
+		}
+	}
 
 	onMount(() => {
 		io.on(SocketEvents.AVAILABLE_ROOMS, (fetchedRooms) => {
-			console.log("RRRR", fetchedRooms);
 			rooms = [...fetchedRooms];
 		});
 		io.on(SocketEvents.YOUR_ROOM, (room) => {
-			console.log("HMMMMM", room);
 			yourRoom = room;
 			sessionStorage.setItem("room", room);
 		});
 		io.on(SocketEvents.ROOM_READY, (data) => {
-			console.log("GGG", data);
-			game = data.game;
+			setGame(data.game);
+			// game = data.game;
 		});
 		io.on(SocketEvents.SHOOT, (res) => {
-			console.log("SHOT", res);
-			game = res.game;
+			setGame(res.game);
+			// game = res.game;
 		});
 		io.on(SocketEvents.AFTER_CONNECT, ({ room, data, availableRooms }) => {
 			console.log("AFTER_CONNECT", room, data, availableRooms);
@@ -42,7 +64,14 @@
 			rooms = [...availableRooms];
 		});
 
-		console.log("Your room", yourRoom, nick, $playerNick);
+		io.on(SocketEvents.PLAYER_DISCONNECTED, ({ room, data, availableRooms }) => {
+			alert("Hrac se odpojil...");
+			yourRoom = room;
+			sessionStorage.setItem("room", room);
+			game = data;
+			rooms = [...availableRooms];
+		});
+
 		io.emit(SocketEvents.AFTER_CONNECT, { roomId: yourRoom, nick });
 	});
 
@@ -62,7 +91,14 @@
 		});
 	}
 
+	function onDisconnect() {
+		io.emit(SocketEvents.APPLY_DISCONNECT);
+		yourRoom = null;
+		game = null;
+	}
+
 	function onClick(x: number, y: number) {
+		clearInterval(playerTurnTimeout);
 		io.emit(SocketEvents.SHOOT, { nick: $playerNick, shot: { x, y } });
 	}
 </script>
@@ -74,6 +110,11 @@
 			{#if yourRoom}
 				<header class="card-header">
 					<h3 class="h3">Your room: <strong>{yourRoom}</strong></h3>
+					<button
+						type="button"
+						class={classNames("mt-2 w-full btn variant-filled")}
+						on:click={onDisconnect}>Disconnect</button
+					>
 				</header>
 			{:else}
 				<header class="card-header"><h3 class="h3">Players</h3></header>
@@ -121,5 +162,12 @@
 				noActions={!game || game.playerTurn !== $playerNick}
 			/>
 		</div>
+		{#if game}
+			<h2 class="h2 text-center font-bold mt-4">
+				{#if game.playerTurn === $playerNick && timer <= 3}
+					Your turn ends in... {timer}
+				{/if}
+			</h2>
+		{/if}
 	</div>
 </div>

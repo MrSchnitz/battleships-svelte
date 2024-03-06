@@ -11,7 +11,7 @@
 	const ARR_SIZE = 10;
 
 	function onPlayClick() {
-		setBoard($selectedShips)
+		setBoard($selectedShips);
 		goto("play");
 	}
 </script>
