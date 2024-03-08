@@ -1,6 +1,6 @@
 <script lang="ts">
-	import classNames from 'classnames';
-	import type { ShipDragDimension } from '$lib/const/types';
+	import classNames from "classnames";
+	import type { ShipDragDimension } from "../config/types";
 
 	let doTransform = false;
 	let move = false;
@@ -20,26 +20,26 @@
 	}
 
 	document.addEventListener(
-		'contextmenu',
+		"contextmenu",
 		(event) => {
 			if (move) {
 				event.preventDefault();
 				event.stopPropagation();
 				doTransform = !doTransform;
-				requestAnimationFrame(() => handleMouseMove(event))
+				requestAnimationFrame(() => handleMouseMove(event));
 			}
 		},
 		{ capture: true }
 	);
 
-	document.addEventListener('mousemove', (event) => {
+	document.addEventListener("mousemove", (event) => {
 		if (move) {
 			event.preventDefault();
 			handleMouseMove(event);
 		}
 	});
 
-	document.addEventListener('mouseup', (event) => {
+	document.addEventListener("mouseup", (event) => {
 		if (move && event.button < 2) {
 			move = false;
 			doTransform = false;
@@ -65,10 +65,10 @@
 
 <div
 	class={classNames(
-		'max-w-fit cursor-grab transition-colors',
-		doTransform && 'rotate-90',
-		move && 'fixed cursor-grabbing',
-		isHovered && 'ring-4 ring-inset ring-violet-500'
+		"max-w-fit cursor-grab transition-colors",
+		doTransform && "rotate-90",
+		move && "fixed cursor-grabbing",
+		isHovered && "ring-4 ring-inset ring-violet-500"
 	)}
 	on:mousedown={onMouseDown}
 	on:mouseover={!move ? onMouseOver : null}

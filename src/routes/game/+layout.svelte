@@ -3,6 +3,9 @@
 	import { onMount, setContext } from "svelte";
 	import type { Ship } from "../../../common/types";
 	import { DEFAULT_SHIPS } from "../../../common/types";
+	import { AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
+	import Icon from "@iconify/svelte";
+	import { page } from "$app/stores";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -67,9 +70,36 @@
 		}));
 	}
 
-	console.log("PPP", $gameSetup.playerNick);
+	console.log("PPP", $page.url.pathname);
 </script>
 
-<div class="w-full">
+<AppShell>
+	<svelte:fragment slot="sidebarLeft"
+		><AppRail>
+			<AppRailAnchor href="/game" selected={$page.url.pathname === "/game"}>
+				<svelte:fragment slot="lead"
+					><Icon icon="fe:user" class="text-[32px]" /></svelte:fragment
+				>
+				<span>Setup nick</span>
+			</AppRailAnchor>
+
+			<AppRailAnchor href="/game/create" selected={$page.url.pathname === "/game/create"}>
+				<svelte:fragment slot="lead"><Icon icon="fe:map" class="text-[32px]" /></svelte:fragment>
+				<span>Create board</span>
+			</AppRailAnchor>
+
+			{#if $gameSetup.isGameSet}
+				<AppRailAnchor href="/game/play" selected={$page.url.pathname === "/game/play"}>
+					<svelte:fragment slot="lead"
+						><Icon icon="fe:gamepad" class="text-[32px]" /></svelte:fragment
+					>
+					<span>Play</span>
+				</AppRailAnchor>
+			{/if}
+			<svelte:fragment slot="trail">
+				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>
+			</svelte:fragment>
+		</AppRail></svelte:fragment
+	>
 	<slot />
-</div>
+</AppShell>

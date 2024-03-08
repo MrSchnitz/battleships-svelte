@@ -15,7 +15,7 @@ export default {
 	plugins: [
 		forms,
 		skeleton({
-			themes: { preset: ['wintry'] }
+			themes: { preset: ['wintry', "skeleton", "modern"] }
 		})
 	]
 } satisfies Config;

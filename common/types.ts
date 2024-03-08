@@ -8,7 +8,8 @@ export enum SocketEvents {
 	AFTER_CONNECT = "afterConnect",
 	DISCONNECT = "disconnect",
 	APPLY_DISCONNECT = "applyDisconnect",
-	PLAYER_DISCONNECTED = "playerDisconnected"
+	PLAYER_DISCONNECTED = "playerDisconnected",
+	TURN_ENDED = "turnEnded"
 }
 
 export enum ShipType {

@@ -135,6 +135,17 @@ export default function injectSocketIO(server: any) {
 				});
 			}
 		});
+
+		socket.on(SocketEvents.TURN_ENDED, (nick: string) => {
+			const newGameData = rooms.get(room)?.changePlayerTurn(nick) ?? [];
+
+			newGameData.forEach((player) => {
+				io.to(player.playerData.id).emit(SocketEvents.SHOOT, {
+					room,
+					game: player
+				});
+			});
+		})
 	});
 
 	console.log("SocketIO injected");

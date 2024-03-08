@@ -1,47 +1,116 @@
 <script lang="ts">
 	import "../app.css";
-	import { AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
+	import { AppRail, AppRailAnchor, AppRailTile, AppShell, Toast } from "@skeletonlabs/skeleton";
 
 	let currentTile: number = 0;
+
+	import { initializeStores } from "@skeletonlabs/skeleton";
+	import Icon from "@iconify/svelte";
+
+	initializeStores();
 </script>
+
+<Toast />
 
 <AppShell>
 	<svelte:fragment slot="header">
-		<div class="flex items-center gap-x-4 p-4">
-			<h2 class="h2 font-bold">BattleShips</h2>
-			<h4 class="h4"><a href="/">Home</a></h4>
-			<h4 class="h4"><a href="/game">Game</a></h4>
-		</div>
+		<nav class="bg-surface-800">
+			<div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+				<div class="relative flex h-16 items-center justify-between">
+					<div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
+						<!-- Mobile menu button-->
+						<button
+							type="button"
+							class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+							aria-controls="mobile-menu"
+							aria-expanded="false"
+						>
+							<span class="absolute -inset-0.5" />
+							<span class="sr-only">Open main menu</span>
+							<!--
+                              Icon when menu is closed.
+
+                              Menu open: "hidden", Menu closed: "block"
+                            -->
+							<svg
+								class="block h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								aria-hidden="true"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+								/>
+							</svg>
+							<!--
+                              Icon when menu is open.
+
+                              Menu open: "block", Menu closed: "hidden"
+                            -->
+							<svg
+								class="hidden h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								aria-hidden="true"
+							>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+					<div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+						<div class="flex flex-shrink-0 items-center">
+							<Icon icon="majesticons:ship" class="h-8 w-8 text-white" />
+							<h2 class="ml-4 h2 font-bold text-white"><a href="/">BattleShips</a></h2>
+						</div>
+						<div class="hidden sm:ml-6 sm:block">
+							<div class="flex space-x-4">
+								<a
+									href="/"
+									class="bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium"
+									aria-current="page">Home</a
+								>
+								<a
+									href="/game"
+									class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+									>Game</a
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Mobile menu, show/hide based on menu state. -->
+			<div class="sm:hidden" id="mobile-menu">
+				<div class="space-y-1 px-2 pb-3 pt-2">
+					<!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
+					<a
+						href="#"
+						class="bg-gray-900 text-white block rounded-md px-3 py-2 text-base font-medium"
+						aria-current="page">Home</a
+					>
+					<a
+						href="#"
+						class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium"
+						>Game</a
+					>
+				</div>
+			</div>
+		</nav>
 	</svelte:fragment>
-	<svelte:fragment slot="sidebarLeft"
-		><AppRail>
-			<svelte:fragment slot="lead">
-				<AppRailAnchor href="/">(icon)</AppRailAnchor>
-			</svelte:fragment>
-			<!-- --- -->
-			<AppRailTile bind:group={currentTile} name="tile-1" value={0} title="tile-1">
-				<svelte:fragment slot="lead">(icon)</svelte:fragment>
-				<span>Tile 1</span>
-			</AppRailTile>
-			<AppRailTile bind:group={currentTile} name="tile-2" value={1} title="tile-2">
-				<svelte:fragment slot="lead">(icon)</svelte:fragment>
-				<span>Tile 2</span>
-			</AppRailTile>
-			<AppRailTile bind:group={currentTile} name="tile-3" value={2} title="tile-3">
-				<svelte:fragment slot="lead">(icon)</svelte:fragment>
-				<span>Tile 3</span>
-			</AppRailTile>
-			<!-- --- -->
-			<svelte:fragment slot="trail">
-				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>
-			</svelte:fragment>
-		</AppRail></svelte:fragment
-	>
 	<!-- (sidebarRight) -->
 	<!-- (pageHeader) -->
 	<!-- Router Slot -->
-	<slot />
+	<main class="h-[90vh] bg-surface-200">
+		<slot />
+	</main>
 	<!-- ---- / ---- -->
 	<!-- (pageFooter) -->
-	<svelte:fragment slot="footer">Footer</svelte:fragment>
+	<svelte:fragment slot="footer"><footer class="bg-surface-800 h-full p-6">Footer</footer></svelte:fragment>
 </AppShell>

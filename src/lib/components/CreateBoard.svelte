@@ -4,16 +4,9 @@
 	import ShipCreator from "$lib/components/ShipCreator.svelte";
 	import ShipDrag from "$lib/components/ShipDrag.svelte";
 	import { create2DArray } from "$lib/util";
-	import {
-		DEFAULT_SHIPS,
-		SHIP_SPACES,
-	} from "../../../common/types";
-	import type {
-		Ship,
-		ShipCoordinate,
-		ShipType
-	} from "../../../common/types";
-	import type { ShipDragDimension } from "$lib/const/types";
+	import { DEFAULT_SHIPS, SHIP_SPACES } from "../../../common/types";
+	import type { Ship, ShipCoordinate, ShipType } from "../../../common/types";
+	import type { ShipDragDimension } from "../config/types";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };

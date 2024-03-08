@@ -57,4 +57,9 @@ export default class Game {
 			this.playerTurn = shot.hit ? selectedPlayer.nick : otherPlayer.nick;
 		}
 	}
+
+	public changePlayerTurn(nick: string) {
+		this.playerTurn = this.players.find((p) => p.nick !== nick)?.nick ?? null;
+		return this.getPlayersStats()
+	}
 }
