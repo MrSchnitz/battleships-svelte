@@ -1,6 +1,8 @@
 <script lang="ts">
-	import classNames from 'classnames';
-	import CellStyled from '$lib/components/CellStyled.svelte';
+	import classNames from "classnames";
+	import CellStyled from "$lib/components/Cell/CellStyled.svelte";
+	import type { ShipType } from "../../../../common/types";
+	import { SHIP_COLORS } from "../../../../common/types";
 
 	let cellElement: HTMLDivElement;
 	let isDuplicated: boolean = false;
@@ -13,6 +15,7 @@
 		left: number | null;
 		right: number | null;
 	};
+	export let shipType: ShipType;
 	export let onHover: (coordinates: { x: number; y: number } | null) => void;
 	export let onDragHover: (x: number, y: number) => void;
 	export let onDragBlur: (x: number, y: number) => void;
@@ -32,9 +35,9 @@
 		const halfHeight = height / 2;
 
 		const xCollision =
-				left < dragPosition.right - halfWidth && left > dragPosition.left - halfWidth;
+			left < dragPosition.right - halfWidth && left > dragPosition.left - halfWidth;
 		const yCollision =
-				top < dragPosition.bottom - halfHeight && top > dragPosition.top - halfHeight;
+			top < dragPosition.bottom - halfHeight && top > dragPosition.top - halfHeight;
 
 		if (xCollision && yCollision) {
 			onDragHover(x, y);
@@ -63,33 +66,29 @@
 </script>
 
 <div
-		class={classNames('cell', {
-		'cell--duplicated': isDuplicated,
-		'cell--selected': !isDuplicated && !isDelete && isSelected,
-		'cell--active': !isDuplicated && !isSelected && isActive,
-		'cell--delete': !isDuplicated && isSelected && isDelete
-	})}
-		on:mouseenter={onMouseEnter}
-		on:mouseleave={onMouseLeave}
-		bind:this={cellElement}
+	class={classNames("relative")}
+	on:mouseenter={onMouseEnter}
+	on:mouseleave={onMouseLeave}
+	bind:this={cellElement}
 >
-	<CellStyled />
+	<CellStyled
+		isSelected={!isDuplicated && !isDelete && isSelected}
+		color={isSelected || isActive ? SHIP_COLORS[shipType] : ""}
+		innerClassName={classNames({
+			"cell--delete": !isDuplicated && isSelected && isDelete,
+			"cell--duplicated": isDuplicated
+		})}
+	/>
 </div>
 
 <style>
-	.cell--active {
-		outline: 3px solid red;
-	}
-
-	.cell--selected {
-		outline: 3px solid green;
-	}
-
 	.cell--duplicated {
-		outline: 3px solid purple;
+		border: none;
+		background-color: black !important;
 	}
 
 	.cell--delete {
-		outline: 3px solid blue;
+		border: 2px solid red;
+		/*background-color: blue;*/
 	}
 </style>

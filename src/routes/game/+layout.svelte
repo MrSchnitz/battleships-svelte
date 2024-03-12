@@ -3,7 +3,7 @@
 	import { onMount, setContext } from "svelte";
 	import type { Ship } from "../../../common/types";
 	import { DEFAULT_SHIPS } from "../../../common/types";
-	import { AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
+	import { AppBar, AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
 	import Icon from "@iconify/svelte";
 	import { page } from "$app/stores";
 
@@ -73,25 +73,27 @@
 	console.log("PPP", $page.url.pathname);
 </script>
 
-<AppShell>
-	<svelte:fragment slot="sidebarLeft"
-		><AppRail>
+<div class="relative h-full">
+	<div class="absolute left-0 top-0 h-full">
+		<AppRail width="h-full w-12 sm:w-24">
 			<AppRailAnchor href="/game" selected={$page.url.pathname === "/game"}>
 				<svelte:fragment slot="lead"
-					><Icon icon="fe:user" class="text-[32px]" /></svelte:fragment
+					><Icon icon="fe:user" class="text-2xl sm:text-4xl" /></svelte:fragment
 				>
-				<span>Setup nick</span>
+				<span class="text-xs sm:text-base">Setup nick</span>
 			</AppRailAnchor>
 
 			<AppRailAnchor href="/game/create" selected={$page.url.pathname === "/game/create"}>
-				<svelte:fragment slot="lead"><Icon icon="fe:map" class="text-[32px]" /></svelte:fragment>
+				<svelte:fragment slot="lead"
+					><Icon icon="fe:map" class="text-2xl sm:text-4xl" /></svelte:fragment
+				>
 				<span>Create board</span>
 			</AppRailAnchor>
 
 			{#if $gameSetup.isGameSet}
 				<AppRailAnchor href="/game/play" selected={$page.url.pathname === "/game/play"}>
 					<svelte:fragment slot="lead"
-						><Icon icon="fe:gamepad" class="text-[32px]" /></svelte:fragment
+						><Icon icon="fe:gamepad" class="text-2xl sm:text-4xl" /></svelte:fragment
 					>
 					<span>Play</span>
 				</AppRailAnchor>
@@ -99,7 +101,23 @@
 			<svelte:fragment slot="trail">
 				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>
 			</svelte:fragment>
-		</AppRail></svelte:fragment
-	>
-	<slot />
-</AppShell>
+		</AppRail>
+	</div>
+	<div class="h-full w-full pl-12 sm:pl-24 flex flex-col">
+		<AppBar>
+			<svelte:fragment slot="lead">
+				{#if $page.url.pathname === "/game"}
+					<h1 class="text-center font-mono text-xl uppercase">Setup nick</h1>
+				{:else if $page.url.pathname === "/game/create"}
+					<h1 class="text-center font-mono text-xl uppercase">Deploy your ships</h1>
+				{:else}
+					<h1 class="text-center font-mono text-xl uppercase">Play</h1>
+				{/if}
+			</svelte:fragment>
+			<svelte:fragment slot="trail">
+				<h3 class="h3"><strong>{$gameSetup.playerNick}</strong></h3>
+			</svelte:fragment>
+		</AppBar>
+		<slot />
+	</div>
+</div>

@@ -5,7 +5,7 @@ import { SocketEvents } from "../common/types";
 import type { Coordinate } from "../common/types";
 
 export default function injectSocketIO(server: any) {
-	const io = new Server(server);
+	const io = new Server(server, { cors: { origin: "*" } });
 
 	const rooms: Map<string, Game> = new Map();
 	const disconnectTimeouts = new Map(); // Map of client ID to disconnect timers
@@ -35,8 +35,8 @@ export default function injectSocketIO(server: any) {
 
 					io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
 						room,
-						data: selectedRoom.getStatForPlayer(nick),
-						availableRooms: []
+						data: selectedRoom.players.length < 2 ? null : selectedRoom.getStatForPlayer(nick),
+						availableRooms: selectedRoom.players.length < 2 ? [...rooms.keys()] : []
 					});
 				}
 			} else {
@@ -133,6 +133,11 @@ export default function injectSocketIO(server: any) {
 						game: player
 					});
 				});
+
+				if (selectedRoom.win) {
+					socket.rooms.delete(room);
+					rooms.delete(room);
+				}
 			}
 		});
 
@@ -145,7 +150,7 @@ export default function injectSocketIO(server: any) {
 					game: player
 				});
 			});
-		})
+		});
 	});
 
 	console.log("SocketIO injected");

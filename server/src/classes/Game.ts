@@ -1,9 +1,11 @@
 import Player from "./Player";
 import type { Coordinate } from "../../../common/types";
+import { ShipType } from "../../../common/types";
 
 export default class Game {
 	players: Player[];
 	playerTurn: string | null;
+	win: string | null = null;
 
 	constructor() {
 		this.players = [];
@@ -33,14 +35,16 @@ export default class Game {
 
 		return {
 			playerData: selectedPlayer?.getData() ?? null,
-			playerTurn: this.playerTurn
+			playerTurn: this.playerTurn,
+			win: this.win
 		};
 	}
 
 	public getPlayersStats() {
 		return this.players.map((player) => ({
 			playerData: player.getData(),
-			playerTurn: this.playerTurn
+			playerTurn: this.playerTurn,
+			win: this.win
 		}));
 	}
 
@@ -54,12 +58,23 @@ export default class Game {
 			selectedPlayer.setShot(shot);
 			selectedPlayer.destroyedShips = otherPlayer.getDestroyedShips();
 
+			this.checkWin(selectedPlayer);
 			this.playerTurn = shot.hit ? selectedPlayer.nick : otherPlayer.nick;
 		}
 	}
 
 	public changePlayerTurn(nick: string) {
 		this.playerTurn = this.players.find((p) => p.nick !== nick)?.nick ?? null;
-		return this.getPlayersStats()
+		return this.getPlayersStats();
+	}
+
+	public checkWin(player: Player) {
+		if (
+			Object.keys(ShipType).every((type) =>
+				player.destroyedShips.some((ship) => ship.type === type)
+			)
+		) {
+			this.win = player.nick;
+		}
 	}
 }

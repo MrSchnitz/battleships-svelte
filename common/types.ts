@@ -28,6 +28,14 @@ export const SHIP_SPACES = {
 	[ShipType.Destroyer]: 2
 } as const;
 
+export const SHIP_COLORS = {
+	[ShipType.Carrier]: "#e53935",
+	[ShipType.Battleship]: "#8E24AA",
+	[ShipType.Cruiser]: "#006b9b",
+	[ShipType.Submarine]: "#3949AB",
+	[ShipType.Destroyer]: "#00897B"
+} as const;
+
 export const DEFAULT_SHIPS = Object.keys(ShipType);
 
 export type Coordinate = { x: number; y: number };

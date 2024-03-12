@@ -1,12 +1,12 @@
 <script lang="ts">
-	import Cell from "./CellCreate.svelte";
+	import Cell from "../Cell/CellCreate.svelte";
 	import classNames from "classnames";
 	import ShipCreator from "$lib/components/ShipCreator.svelte";
 	import ShipDrag from "$lib/components/ShipDrag.svelte";
 	import { create2DArray } from "$lib/util";
-	import { DEFAULT_SHIPS, SHIP_SPACES } from "../../../common/types";
-	import type { Ship, ShipCoordinate, ShipType } from "../../../common/types";
-	import type { ShipDragDimension } from "../config/types";
+	import { DEFAULT_SHIPS, SHIP_SPACES } from "../../../../common/types";
+	import type { Ship, ShipCoordinate, ShipType } from "../../../../common/types";
+	import type { ShipDragDimension } from "../../config/types";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
@@ -14,6 +14,8 @@
 	let isOnDuplicated: boolean = false;
 	let shipToDelete: Ship | null = null;
 	let mousePosition: { x: number; y: number } | null = null;
+	let isRotated: boolean = false;
+	let activeShipType: ShipType | null = null;
 
 	export let size: number = 0;
 	export let addShip: (ship: Ship) => void = null;
@@ -28,11 +30,15 @@
 		);
 	}
 
-	function onShipDragMouseMove(dragDimension: ShipDragDimension) {
+	function onShipDragStart(shipType: ShipType) {
+		activeShipType = shipType;
+	}
+
+	function onShipDragMove(dragDimension: ShipDragDimension) {
 		dragPosition = dragDimension;
 	}
 
-	function onShipDragMouseUp(shipType: ShipType) {
+	function onShipDragEnd(shipType: ShipType) {
 		if (isOnDuplicated) {
 			alert("Tady to nejde!");
 		} else if (hoveredCells.length > 0 && hoveredCells.length === SHIP_SPACES[shipType]) {
@@ -42,6 +48,7 @@
 		dragPosition = { top: null, bottom: null, left: null, right: null };
 		mousePosition = null;
 		hoveredCells = [];
+		activeShipType = null;
 	}
 
 	function onDragHover(x: number, y: number) {
@@ -101,23 +108,38 @@
 			shipToDelete = null;
 		}
 	});
+
+	function toggleRotated() {
+		isRotated = !isRotated;
+	}
 </script>
 
 <div>
-	{#if shipToDelete && mousePosition}
-		<div class="fixed" style="left: {mousePosition.x}px; top: {mousePosition.y}px">X</div>
-	{/if}
-	<h1 class="text-center font-mono text-2xl mb-12 uppercase">Deploy your ships</h1>
-	<div class="flex gap-x-16">
-		<div class="flex flex-col gap-3 justify-center w-[150px]">
-			{#each SHIPS as type, i}
-				<ShipDrag onMouseMove={onShipDragMouseMove} onMouseUp={() => onShipDragMouseUp(type)}>
-					<ShipCreator {type} />
-				</ShipDrag>
-			{/each}
+	<!--{#if shipToDelete && mousePosition}-->
+	<!--	<div class="fixed" style="left: {mousePosition.x}px; top: {mousePosition.y}px">X</div>-->
+	<!--{/if}-->
+	<div class="flex flex-col sm:flex-row gap-8 sm:gap-16">
+		<div class="w-full flex flex-col justify-between">
+			<div
+				class={classNames(
+					"flex items-start gap-3 w-[15vmax] h-[20vmax]",
+					isRotated ? "flex-row" : "flex-col"
+				)}
+			>
+				{#each SHIPS as type, i}
+					<ShipDrag
+						onDragMove={onShipDragMove}
+						onDragStart={() => onShipDragStart(type)}
+						onDragEnd={() => onShipDragEnd(type)}
+					>
+						<ShipCreator {type} {isRotated} />
+					</ShipDrag>
+				{/each}
+			</div>
+			<button class="mt-4 btn btn-sm variant-filled" on:click={toggleRotated}>Rotate ships</button>
 		</div>
 		<div
-			class={classNames("relative grid gap-0 place-content-center")}
+			class={classNames("relative grid gap-[1px] place-content-center")}
 			style="grid-template-columns: repeat({size}, min-content)"
 		>
 			{#each cellArray as cell}
@@ -125,6 +147,9 @@
 					<Cell
 						x={item.x}
 						y={item.y}
+						shipType={selectedShips.find((selectedShip) =>
+							selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
+						)?.type ?? activeShipType}
 						{dragPosition}
 						isSelected={Boolean(
 							selectedShips.find((selectedShip) =>

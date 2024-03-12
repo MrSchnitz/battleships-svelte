@@ -2,6 +2,7 @@
 	import classNames from "classnames";
 	import { goto } from "$app/navigation";
 	import { getContext } from "svelte";
+	import { AppBar } from "@skeletonlabs/skeleton";
 
 	const { isGameSet, playerNick, setPlayerNick } = getContext("gameSetupContext");
 
@@ -22,8 +23,8 @@
 	}
 </script>
 
-<div class="h-screen grid place-content-center">
-	<div class="min-w-[300px]">
+<div class="h-full grid place-content-center">
+	<div class="sm:min-w-[300px]">
 		<label class="label">
 			<span>Nick</span>
 			<input class="input" type="text" placeholder="Enter your nick" bind:value={nickInput} />

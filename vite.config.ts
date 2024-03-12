@@ -5,6 +5,7 @@ import { webSocketServer } from "./webSocketPluginVite";
 export default defineConfig({
 	server: {
 		port: 3000,
+		host: true,
 		fs: {
 			allow: ["/"]
 		}
