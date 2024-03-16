@@ -7,6 +7,7 @@
 	import { DEFAULT_SHIPS, SHIP_SPACES } from "../../../../common/types";
 	import type { Ship, ShipCoordinate, ShipType } from "../../../../common/types";
 	import type { ShipDragDimension } from "../../config/types";
+	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
@@ -138,10 +139,7 @@
 			</div>
 			<button class="mt-4 btn btn-sm variant-filled" on:click={toggleRotated}>Rotate ships</button>
 		</div>
-		<div
-			class={classNames("relative grid gap-[1px] place-content-center")}
-			style="grid-template-columns: repeat({size}, min-content)"
-		>
+		<BoardWrapper {size}>
 			{#each cellArray as cell}
 				{#each cell as item}
 					<Cell
@@ -167,6 +165,6 @@
 					/>
 				{/each}
 			{/each}
-		</div>
+		</BoardWrapper>
 	</div>
 </div>

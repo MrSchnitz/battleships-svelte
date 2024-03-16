@@ -22,7 +22,7 @@
 			innerClassName
 		)}
 		style="background-color: {color}"
-	/>
+	></div>
 </div>
 
 <style>

@@ -107,11 +107,11 @@
 		<AppBar>
 			<svelte:fragment slot="lead">
 				{#if $page.url.pathname === "/game"}
-					<h1 class="text-center font-mono text-xl uppercase">Setup nick</h1>
+					<h1 class="text-center text-xl uppercase">Setup nick</h1>
 				{:else if $page.url.pathname === "/game/create"}
-					<h1 class="text-center font-mono text-xl uppercase">Deploy your ships</h1>
+					<h1 class="text-center text-xl uppercase">Deploy your ships</h1>
 				{:else}
-					<h1 class="text-center font-mono text-xl uppercase">Play</h1>
+					<h1 class="text-center text-xl uppercase">Play</h1>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="trail">

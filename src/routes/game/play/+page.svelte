@@ -1,10 +1,9 @@
 <script lang="ts">
 	import PlayBoard from "$lib/components/Board/PlayBoard.svelte";
-	import {getContext, onDestroy, onMount} from "svelte";
+	import { getContext, onDestroy, onMount } from "svelte";
 	import classNames from "classnames";
 	import { io } from "$lib/weSocketConnection";
 	import { getModalStore, ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
-	import EnemyPlayBoard from "$lib/components/Board/EnemyPlayBoard.svelte";
 	import { SocketEvents } from "../../../../common/types";
 	import { getToastStore } from "@skeletonlabs/skeleton";
 	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "../../../lib/config/consts";
@@ -23,6 +22,7 @@
 	let game = null;
 	let playerTurnTimeout = null;
 	let timer = TIMEOUT_TIMER;
+	let isYourTurn = false;
 
 	$: {
 		if (timer <= 0) {
@@ -34,6 +34,8 @@
 			io.emit(SocketEvents.TURN_ENDED, $playerNick);
 		}
 	}
+
+	$: isYourTurn = game?.playerTurn === $playerNick;
 
 	onMount(() => {
 		io.on(SocketEvents.AVAILABLE_ROOMS, (fetchedRooms) => {
@@ -51,7 +53,7 @@
 		io.on(SocketEvents.AFTER_CONNECT, ({ room, data, availableRooms }) => {
 			setYourRoom(room);
 			game = data;
-			console.log("HMMM", data)
+			console.log("HMMM", data);
 			rooms = [...availableRooms];
 			clearTimeoutInterval();
 		});
@@ -68,10 +70,10 @@
 	});
 
 	onDestroy(() => {
-		io.disconnect()
-		io.close()
-		clearTimeoutInterval()
-	})
+		io.disconnect();
+		io.close();
+		clearTimeoutInterval();
+	});
 
 	function clearTimeoutInterval() {
 		timer = TIMEOUT_TIMER;
@@ -168,39 +170,55 @@
 	</div>
 	<div class="flex flex-col sm:flex-row overflow-auto h-full">
 		<div class="w-full grid place-content-center">
-			{#if game}
-				<h2 class="h2 text-center font-bold mb-4">
-					{#if game.playerTurn === $playerNick}
-						Your turn
-					{:else}
-						Enemy turn
-					{/if}
-				</h2>
-			{/if}
-			<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-16">
-				<PlayBoard
-					size={GAME_BOARD_SIZE}
-					ships={game ? game.playerData.ships : $board}
-					enemyShots={game ? game.playerData.enemyShots : []}
-					label="Your ships"
-					noActions={true}
-				/>
-				<EnemyPlayBoard
-					size={GAME_BOARD_SIZE}
-					shots={game ? game.playerData.shots : []}
-					destroyedShips={game ? game.playerData.destroyedShips : []}
-					{onClick}
-					label="enemy ships"
-					noActions={!game || game.playerTurn !== $playerNick}
-				/>
-			</div>
-			{#if game}
-				<h2 class="h2 text-center font-bold mt-4">
-					{#if game.playerTurn === $playerNick && timer <= 3}
+			<div class="card px-4">
+				{#if game}
+					<div class="card-header">
+						<h3 class="h3 text-center font-bold mb-4">
+							{#if isYourTurn}
+								Your turn
+							{:else}
+								Enemy turn
+							{/if}
+						</h3>
+					</div>
+				{/if}
+				<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+					<PlayBoard
+						className={classNames(
+							"lg:translate-y-0 transition-[transform] duration-1000",
+							game && isYourTurn ? "translate-y-[106%]" : "translate-y-0 relative z-10"
+						)}
+						size={GAME_BOARD_SIZE}
+						ships={game ? game.playerData.ships : $board}
+						shots={game ? game.playerData.enemyShots : []}
+						label="Your ships"
+						noActions={true}
+					/>
+					<PlayBoard
+						className={classNames(
+							"lg:translate-y-0 transition-[transform] duration-1000",
+							game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
+						)}
+						size={GAME_BOARD_SIZE}
+						ships={game ? game.playerData.destroyedShips : []}
+						shots={game ? game.playerData.shots : []}
+						label={isYourTurn ? "Attack!" : "enemy ships"}
+						isActive={isYourTurn}
+						noActions={!game || game.playerTurn !== $playerNick}
+						{onClick}
+					/>
+				</div>
+				{#if game}
+					<h3
+						class={classNames(
+							"h3 text-center font-bold mt-4",
+							(!isYourTurn || timer > 3) && "invisible"
+						)}
+					>
 						Your turn ends in... {timer}
-					{/if}
-				</h2>
-			{/if}
+					</h3>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}
