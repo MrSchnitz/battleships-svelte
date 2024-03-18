@@ -5,10 +5,14 @@ import { SocketEvents } from "../common/types";
 import type { Coordinate } from "../common/types";
 
 export default function injectSocketIO(server: any) {
-	const io = new Server(server, { cors: { origin: "*" } });
+	const io = new Server(server, { cors: { origin: "*" } } as never);
 
 	const rooms: Map<string, Game> = new Map();
 	const disconnectTimeouts = new Map(); // Map of client ID to disconnect timers
+
+	function getAvailableRooms() {
+		return [...rooms.entries()].flatMap(([key, value]) => (value.players.length < 2 ? key : []));
+	}
 
 	io.on("connection", (socket) => {
 		let room = "";
@@ -35,15 +39,15 @@ export default function injectSocketIO(server: any) {
 
 					io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
 						room,
-						data: selectedRoom.players.length < 2 ? null : selectedRoom.getStatForPlayer(nick),
-						availableRooms: selectedRoom.players.length < 2 ? [...rooms.keys()] : []
+						data: selectedRoom.players.length < 2 ? null : selectedRoom.getAfterConnectStatsForPlayer(nick),
+						availableRooms: selectedRoom.players.length < 2 ? getAvailableRooms() : []
 					});
 				}
 			} else {
 				io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
 					room,
 					data: null,
-					availableRooms: [...rooms.keys()]
+					availableRooms: getAvailableRooms()
 				});
 			}
 		});
@@ -57,7 +61,7 @@ export default function injectSocketIO(server: any) {
 				io.to(selectedRoom).emit(SocketEvents.PLAYER_DISCONNECTED, {
 					room: null,
 					data: null,
-					availableRooms: [...rooms.keys()]
+					availableRooms: getAvailableRooms()
 				});
 				socket.rooms.delete(room);
 				room = "";
@@ -112,11 +116,13 @@ export default function injectSocketIO(server: any) {
 
 				io.to(socket.id).emit(SocketEvents.YOUR_ROOM, roomId);
 
-				selectedRoom.getPlayersStats().forEach((player) => {
-					io.to(player.playerData.id).emit(SocketEvents.ROOM_READY, {
-						room,
-						game: player
-					});
+				selectedRoom.getGamePlayStats().forEach((player) => {
+					if (player?.playerData?.id) {
+						io.to(player.playerData.id).emit(SocketEvents.ROOM_READY, {
+							room,
+							game: player
+						});
+					}
 				});
 			}
 		});
@@ -127,16 +133,19 @@ export default function injectSocketIO(server: any) {
 			if (selectedRoom) {
 				selectedRoom.play(nick, shot);
 
-				selectedRoom.getPlayersStats().forEach((player) => {
-					io.to(player.playerData.id).emit(SocketEvents.SHOOT, {
-						room,
-						game: player
-					});
+				selectedRoom.getGamePlayStats().forEach((player) => {
+					if (player?.playerData?.id) {
+						io.to(player.playerData.id).emit(SocketEvents.SHOOT, {
+							room,
+							game: player
+						});
+					}
 				});
 
 				if (selectedRoom.win) {
 					socket.rooms.delete(room);
 					rooms.delete(room);
+					room = ""
 				}
 			}
 		});
@@ -144,11 +153,13 @@ export default function injectSocketIO(server: any) {
 		socket.on(SocketEvents.TURN_ENDED, (nick: string) => {
 			const newGameData = rooms.get(room)?.changePlayerTurn(nick) ?? [];
 
-			newGameData.forEach((player) => {
-				io.to(player.playerData.id).emit(SocketEvents.SHOOT, {
-					room,
-					game: player
-				});
+			newGameData.forEach((playerStats) => {
+				if (playerStats?.playerData?.id) {
+					io.to(playerStats.playerData.id).emit(SocketEvents.TURN_ENDED, {
+						room,
+						game: playerStats
+					});
+				}
 			});
 		});
 	});

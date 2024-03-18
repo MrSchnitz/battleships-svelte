@@ -2,7 +2,6 @@
 	import classNames from "classnames";
 	import { goto } from "$app/navigation";
 	import { getContext } from "svelte";
-	import { AppBar } from "@skeletonlabs/skeleton";
 
 	const { isGameSet, playerNick, setPlayerNick } = getContext("gameSetupContext");
 

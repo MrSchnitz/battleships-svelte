@@ -10,7 +10,7 @@
 
 <div
 	class={classNames(
-		"relative bg-white rounded-lg border-4 border-white transition-[opacity] duration-500 delay-1000",
+		"relative bg-white rounded-lg border-4 border-white transition-all duration-500 delay-[2s]",
 		noActions && "pointer-events-none",
 		!isActive && "opacity-50",
 		className

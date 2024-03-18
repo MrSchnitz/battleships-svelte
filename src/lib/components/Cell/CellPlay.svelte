@@ -1,8 +1,6 @@
 <script lang="ts">
-	import classNames from "classnames";
 	import CellStyled from "$lib/components/Cell/CellStyled.svelte";
 	import { SHIP_COLORS, ShipType } from "../../../../common/types";
-	import Icon from "@iconify/svelte";
 	import Target from "$lib/components/Cell/Target.svelte";
 	import Miss from "$lib/components/Cell/Miss.svelte";
 	import Hit from "$lib/components/Cell/Hit.svelte";
@@ -15,9 +13,9 @@
 	export let x: number;
 	export let y: number;
 	export let onClick: (x: number, y: number) => void;
-	export let isSelected: boolean | undefined = false;
 	export let isHit: boolean | null = null;
 	export let isMiss: boolean | null = null;
+	export let isShoot: boolean | null = null;
 	export let isDestroyed: boolean | null = null;
 	export let shipType: ShipType | null = null;
 
@@ -33,11 +31,13 @@
 <div
 	on:mouseenter={onMouseEnter}
 	on:mouseleave={onMouseLeave}
-	on:click={() => onClick(x, y)}
+	on:click={isShoot || isHit || isMiss || isDestroyed ? null : () => onClick(x, y)}
 	bind:this={cellElement}
 >
 	<CellStyled color={shipType ? SHIP_COLORS[shipType] : ""}>
-		{#if isDestroyed}
+		{#if isShoot}
+			<Shoot />
+		{:else if isDestroyed}
 			<Destroyed />
 		{:else if isHit}
 			<Hit />

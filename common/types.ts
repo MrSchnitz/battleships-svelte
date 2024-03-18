@@ -1,3 +1,5 @@
+import Player from "../server/src/classes/Player";
+
 export enum SocketEvents {
 	AVAILABLE_ROOMS = "availableRooms",
 	CREATE_ROOM = "createRoom",
@@ -11,6 +13,29 @@ export enum SocketEvents {
 	PLAYER_DISCONNECTED = "playerDisconnected",
 	TURN_ENDED = "turnEnded"
 }
+
+export interface IGame {
+	players: Player[];
+	playerTurn: string | null;
+	win: string | null;
+	currentShot: Shot | null;
+}
+
+export interface IPlayer {
+	id: string;
+	nick: string;
+	ships: Ship[];
+	shots: Shot[];
+	enemyShots: Shot[];
+	destroyedShips: Ship[];
+}
+
+export type GameStat = {
+	playerData: IPlayer | null;
+	playerTurn: string | null;
+	win: string | null;
+	shot: Shot | null;
+};
 
 export enum ShipType {
 	Carrier = "Carrier",
@@ -46,5 +71,11 @@ export type Ship = { type: ShipType; coords: ShipCoordinate[]; destroyed: boolea
 
 export type Shot = {
 	coords: Coordinate;
-	hit: boolean;
+	type: ShotEvent;
 };
+
+export enum ShotEvent {
+	MISS = "MISS",
+	HIT = "HIT",
+	DESTROY = "DESTROY"
+}

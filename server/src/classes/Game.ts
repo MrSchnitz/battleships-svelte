@@ -1,11 +1,12 @@
 import Player from "./Player";
-import type { Coordinate } from "../../../common/types";
-import { ShipType } from "../../../common/types";
+import type { Coordinate, GameStat, IGame, Shot } from "../../../common/types";
+import { ShipType, ShotEvent } from "../../../common/types";
 
-export default class Game {
+export default class Game implements IGame {
 	players: Player[];
 	playerTurn: string | null;
 	win: string | null = null;
+	currentShot: Shot | null = null;
 
 	constructor() {
 		this.players = [];
@@ -30,42 +31,49 @@ export default class Game {
 		}
 	}
 
-	public getStatForPlayer(nick: string) {
+	public getAfterConnectStatsForPlayer(nick: string): GameStat {
 		const selectedPlayer = this.players.find((p) => p.nick === nick);
 
 		return {
 			playerData: selectedPlayer?.getData() ?? null,
 			playerTurn: this.playerTurn,
-			win: this.win
+			win: this.win,
+			shot: null
 		};
 	}
 
-	public getPlayersStats() {
+	public getGamePlayStats(): GameStat[] {
 		return this.players.map((player) => ({
 			playerData: player.getData(),
 			playerTurn: this.playerTurn,
-			win: this.win
+			win: this.win,
+			shot: this.currentShot
 		}));
 	}
 
 	public play(playerNick: string, shotCoordinate: Coordinate) {
+		this.currentShot = null;
 		const selectedPlayer = this.players.find((p) => p.nick === playerNick);
 		const otherPlayer = this.players.find((p) => p.nick !== playerNick);
 
 		if (selectedPlayer && otherPlayer) {
 			const shot = otherPlayer.checkShipHit(shotCoordinate);
-
 			selectedPlayer.setShot(shot);
 			selectedPlayer.destroyedShips = otherPlayer.getDestroyedShips();
 
 			this.checkWin(selectedPlayer);
-			this.playerTurn = shot.hit ? selectedPlayer.nick : otherPlayer.nick;
+
+			this.playerTurn = [ShotEvent.HIT, ShotEvent.DESTROY].includes(shot.type)
+				? selectedPlayer.nick
+				: otherPlayer.nick;
+			this.currentShot = shot;
 		}
 	}
 
 	public changePlayerTurn(nick: string) {
+		this.currentShot = null;
 		this.playerTurn = this.players.find((p) => p.nick !== nick)?.nick ?? null;
-		return this.getPlayersStats();
+		return this.getGamePlayStats();
 	}
 
 	public checkWin(player: Player) {

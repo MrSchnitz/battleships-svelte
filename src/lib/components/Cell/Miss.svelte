@@ -1,8 +1,6 @@
 <script lang="ts">
-	import Shoot from "$lib/components/Cell/Shoot.svelte";
 </script>
 
-<Shoot />
 <div class="miss" />
 
 <style>
@@ -13,7 +11,7 @@
 		background: #2d2d2d;
 		transform-origin: center center;
 		transform: rotate(45deg);
-		animation: blow 0.5s ease-in 1s;
+		animation: blow 0.5s ease-in;
 	}
 
 	@keyframes blow {

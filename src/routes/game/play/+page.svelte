@@ -1,14 +1,16 @@
 <script lang="ts">
 	import PlayBoard from "$lib/components/Board/PlayBoard.svelte";
-	import { getContext, onDestroy, onMount } from "svelte";
+	import { getContext, onDestroy, onMount, setContext } from "svelte";
 	import classNames from "classnames";
 	import { io } from "$lib/weSocketConnection";
-	import { getModalStore, ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
-	import { SocketEvents } from "../../../../common/types";
-	import { getToastStore } from "@skeletonlabs/skeleton";
-	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "../../../lib/config/consts";
+	import { getModalStore, getToastStore, ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
+	import { SocketEvents, ShotEvent } from "../../../../common/types";
+	import type { GameStat } from "../../../../common/types";
+	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "$lib/config/consts";
 	import WinGif from "$lib/images/win.gif";
 	import LoseGif from "$lib/images/lose.gif";
+	import AudioPlayer from "$lib/AudioPlayer";
+	import { writable } from "svelte/store";
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
@@ -19,7 +21,7 @@
 
 	let rooms = [];
 	let yourRoom: string | null = sessionStorage.getItem("room") ?? null;
-	let game = null;
+	let game: GameStat | null;
 	let playerTurnTimeout = null;
 	let timer = TIMEOUT_TIMER;
 	let isYourTurn = false;
@@ -47,13 +49,16 @@
 		io.on(SocketEvents.ROOM_READY, (data) => {
 			setGame(data.game);
 		});
+		io.on(SocketEvents.TURN_ENDED, (data) => {
+			setYourRoom(data.room);
+			setGame(data.game)
+		});
 		io.on(SocketEvents.SHOOT, (res) => {
 			setGame(res.game);
 		});
 		io.on(SocketEvents.AFTER_CONNECT, ({ room, data, availableRooms }) => {
 			setYourRoom(room);
 			game = data;
-			console.log("HMMM", data);
 			rooms = [...availableRooms];
 			clearTimeoutInterval();
 		});
@@ -89,21 +94,53 @@
 		timer = TIMEOUT_TIMER;
 	}
 
-	function setGame(newGame: any) {
-		game = newGame;
-		timer = TIMEOUT_TIMER;
+	function setGame(newGame: GameStat | null) {
+		if (newGame?.shot && game) {
+			game = { ...game, shot: newGame.shot };
 
-		if (game.win) {
-			modalStore.trigger({
-				type: "alert",
-				title: $playerNick === game.win ? "You are the winner!" : `${game.win} has won!`,
-				image: $playerNick === game.win ? WinGif : LoseGif
-			});
-			clearState();
+
+			setTimeout(() => {
+			console.log("Hmmm", newGame?.shot?.type)
+				switch (newGame?.shot?.type) {
+					case ShotEvent.DESTROY:
+						AudioPlayer.totalExplosion();
+						break;
+					case ShotEvent.HIT:
+						AudioPlayer.hit();
+						break;
+					case ShotEvent.MISS:
+						AudioPlayer.plop();
+						break;
+					default:
+						break;
+				}
+
+				game = { ...newGame, shot: null };
+
+				if (newGame?.win) {
+					modalStore.trigger({
+						type: "alert",
+						title: $playerNick === newGame.win ? "You are the winner!" : `${newGame.win} has won!`,
+						image: $playerNick === newGame.win ? WinGif : LoseGif
+					});
+
+					if ($playerNick === newGame.win) {
+						AudioPlayer.win();
+					} else {
+						AudioPlayer.lose();
+					}
+					clearState();
+					return;
+				}
+			}, 1000);
+		} else {
+			game = newGame;
 		}
-		// if (newGame && game.playerTurn === $playerNick) {
-		// 	playerTurnTimeout = setInterval(() => timer--, TIMEOUT_INTERVAL);
-		// }
+
+		if (newGame && newGame.playerTurn === $playerNick) {
+			timer = TIMEOUT_TIMER;
+			playerTurnTimeout = setInterval(() => timer--, TIMEOUT_INTERVAL);
+		}
 	}
 
 	function setYourRoom(room: string | null) {
@@ -185,23 +222,25 @@
 				<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
 					<PlayBoard
 						className={classNames(
-							"lg:translate-y-0 transition-[transform] duration-1000",
+							"lg:translate-y-0",
 							game && isYourTurn ? "translate-y-[106%]" : "translate-y-0 relative z-10"
 						)}
 						size={GAME_BOARD_SIZE}
 						ships={game ? game.playerData.ships : $board}
 						shots={game ? game.playerData.enemyShots : []}
+						currentShot={!isYourTurn && (game?.shot?.coords ?? null)}
 						label="Your ships"
 						noActions={true}
 					/>
 					<PlayBoard
 						className={classNames(
-							"lg:translate-y-0 transition-[transform] duration-1000",
+							"lg:translate-y-0",
 							game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
 						)}
 						size={GAME_BOARD_SIZE}
 						ships={game ? game.playerData.destroyedShips : []}
 						shots={game ? game.playerData.shots : []}
+						currentShot={isYourTurn && (game?.shot?.coords ?? null)}
 						label={isYourTurn ? "Attack!" : "enemy ships"}
 						isActive={isYourTurn}
 						noActions={!game || game.playerTurn !== $playerNick}

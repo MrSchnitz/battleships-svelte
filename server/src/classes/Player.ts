@@ -1,6 +1,7 @@
-import type { Coordinate, Ship, Shot } from "../../../common/types";
+import type { Coordinate, IPlayer, Ship, Shot } from "../../../common/types";
+import { ShotEvent } from "../../../common/types";
 
-export default class Player {
+export default class Player implements IPlayer {
 	id: string;
 	nick: string;
 	ships: Ship[];
@@ -21,8 +22,9 @@ export default class Player {
 		this.shots.push(shot);
 	}
 
-	checkShipHit(shotCoordinate: Coordinate) {
-		let isHit = false;
+	checkShipHit(shotCoordinate: Coordinate): Shot {
+		let shotType = ShotEvent.MISS;
+		const currentDestroyedShips = this.getDestroyedShips();
 
 		this.ships.forEach((ship) => {
 			const hitCoordinateIndex = ship.coords.findIndex(
@@ -31,7 +33,7 @@ export default class Player {
 
 			if (hitCoordinateIndex >= 0) {
 				ship.coords[hitCoordinateIndex].hit = true;
-				isHit = true;
+				shotType = ShotEvent.HIT;
 			}
 
 			if (ship.coords.every((c) => c.hit)) {
@@ -39,9 +41,13 @@ export default class Player {
 			}
 		});
 
+		if (currentDestroyedShips.length < this.getDestroyedShips().length) {
+			shotType = ShotEvent.DESTROY;
+		}
+
 		const shot = {
 			coords: shotCoordinate,
-			hit: isHit
+			type: shotType
 		};
 
 		this.enemyShots.push(shot);
