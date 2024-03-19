@@ -8,15 +8,25 @@
 	box-sizing: border-box;
 }
 
-
-:root [data-theme='skeleton'] {
+:root [data-theme="skeleton"] {
 	--theme-font-family-base: "Source Code Pro", monospace;
 	--theme-font-family-heading: "Source Code Pro", monospace;
 }
-
 
 html,
 body {
 	height: 100%;
 	font-family: "Source Code Pro", monospace;
+}
+
+.cell {
+	width: 3.8vmax;
+	height: 3.8vmax;
+}
+
+@media only screen and (min-width: 768px) {
+	.cell {
+		width: 2.4vmax;
+		height: 2.4vmax;
+	}
 }

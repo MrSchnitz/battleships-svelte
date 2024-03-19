@@ -10,12 +10,12 @@
 	import WinGif from "$lib/images/win.gif";
 	import LoseGif from "$lib/images/lose.gif";
 	import AudioPlayer from "$lib/AudioPlayer";
-	import { writable } from "svelte/store";
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
 	const { playerNick, board } = getContext("gameSetupContext");
+	const isConnectedToRoom = getContext("isConnectedToRoom");
 
 	let nick = sessionStorage.getItem("nick") ?? "";
 
@@ -39,6 +39,11 @@
 
 	$: isYourTurn = game?.playerTurn === $playerNick;
 
+	$: {
+		console.log("GGG", !!yourRoom)
+		$isConnectedToRoom = !!yourRoom;
+	}
+
 	onMount(() => {
 		io.on(SocketEvents.AVAILABLE_ROOMS, (fetchedRooms) => {
 			rooms = [...fetchedRooms];
@@ -51,7 +56,7 @@
 		});
 		io.on(SocketEvents.TURN_ENDED, (data) => {
 			setYourRoom(data.room);
-			setGame(data.game)
+			setGame(data.game);
 		});
 		io.on(SocketEvents.SHOOT, (res) => {
 			setGame(res.game);
@@ -98,9 +103,7 @@
 		if (newGame?.shot && game) {
 			game = { ...game, shot: newGame.shot };
 
-
 			setTimeout(() => {
-			console.log("Hmmm", newGame?.shot?.type)
 				switch (newGame?.shot?.type) {
 					case ShotEvent.DESTROY:
 						AudioPlayer.totalExplosion();
@@ -196,18 +199,22 @@
 		</div>
 	</div>
 {:else}
-	<div class="card p-4 mb-4 flex flex-col gap-2 sm:flex-row justify-between items-center">
-		<h3 class="h3">Your room: <strong>{yourRoom}</strong></h3>
+	<div
+		class="card p-2 md:p-4 mb-4 flex flex-col gap-1 md:gap-2 sm:flex-row justify-between items-center"
+	>
+		<h3 class="h5 md:h3">Your room: <strong>{yourRoom}</strong></h3>
 		{#if !game}
-			<h4 class="h4 animate-pulse">Waiting for opponent...</h4>
+			<h4 class="h6 md:h4 animate-pulse">Waiting for opponent...</h4>
 		{/if}
-		<button type="button" class={classNames("btn btn-sm variant-filled")} on:click={onDisconnect}
-			>Disconnect</button
+		<button
+			type="button"
+			class={classNames("btn md:!btn-sm py-0.5 px-2 text-sm variant-filled")}
+			on:click={onDisconnect}>Disconnect</button
 		>
 	</div>
 	<div class="flex flex-col sm:flex-row overflow-auto h-full">
 		<div class="w-full grid place-content-center">
-			<div class="card px-4">
+			<div class="card p-4">
 				{#if game}
 					<div class="card-header">
 						<h3 class="h3 text-center font-bold mb-4">
@@ -222,7 +229,7 @@
 				<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
 					<PlayBoard
 						className={classNames(
-							"lg:translate-y-0",
+							"md:translate-y-0",
 							game && isYourTurn ? "translate-y-[106%]" : "translate-y-0 relative z-10"
 						)}
 						size={GAME_BOARD_SIZE}
@@ -234,7 +241,7 @@
 					/>
 					<PlayBoard
 						className={classNames(
-							"lg:translate-y-0",
+							"md:translate-y-0",
 							game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
 						)}
 						size={GAME_BOARD_SIZE}

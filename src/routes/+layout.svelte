@@ -101,9 +101,9 @@
 	</main>
 	<!-- ---- / ---- -->
 	<!-- (pageFooter) -->
-	<svelte:fragment slot="footer"
-		><footer class="bg-surface-800 p-2 text-xs text-white">
-			All rights reserved.
-		</footer></svelte:fragment
-	>
+<!--	<svelte:fragment slot="footer"-->
+<!--		><footer class="bg-surface-800 p-2 text-xs text-white">-->
+<!--			All rights reserved.-->
+<!--		</footer></svelte:fragment-->
+<!--	>-->
 </AppShell>

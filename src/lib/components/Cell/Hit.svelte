@@ -2,7 +2,7 @@
 </script>
 
 <div class="hit hit-1" />
-<div class="hit hit-2" />
+<div class="it hit-2" />
 <div class="hit hit-3" />
 
 <style>
@@ -13,8 +13,8 @@
 		opacity: 0;
 		bottom: 0;
 		position: absolute;
-		width: 2vmax;
-		height: 2vmax;
+		width: 2.8vmax;
+		height: 2.8vmax;
 		z-index: 2;
 	}
 
@@ -46,4 +46,11 @@
 			transform: translateY(-2vmax) scale(0);
 		}
 	}
+
+    @media only screen and (min-width: 768px) {
+        .hit {
+            width: 2vmax;
+            height: 2vmax;
+        }
+    }
 </style>

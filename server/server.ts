@@ -103,7 +103,7 @@ export default function injectSocketIO(server: any) {
 			socket.join(room);
 
 			io.to(room).emit(SocketEvents.YOUR_ROOM, room);
-			io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+			io.emit(SocketEvents.AVAILABLE_ROOMS, getAvailableRooms());
 		});
 
 		socket.on(SocketEvents.JOIN_ROOM, ({ room: roomId, nick, board }) => {
@@ -124,6 +124,8 @@ export default function injectSocketIO(server: any) {
 						});
 					}
 				});
+
+				io.emit(SocketEvents.AVAILABLE_ROOMS, getAvailableRooms());
 			}
 		});
 

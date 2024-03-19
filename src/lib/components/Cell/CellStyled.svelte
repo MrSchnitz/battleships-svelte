@@ -10,7 +10,7 @@
 
 <div
 	class={classNames(
-		"relative w-[3vmax] h-[3vmax] sm:w-[2.5vmax] sm:h-[2.5vmax] rounded grid place-content-center",
+		"relative w-[3.8vmax] h-[3.8vmax] sm:w-[2.5vmax] sm:h-[2.5vmax] rounded grid place-content-center",
 		!noBackground && "cell-styled",
 		className
 	)}

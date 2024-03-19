@@ -7,12 +7,10 @@
 	// });
 </script>
 
-<div class="absolute z-[2] top-0 right-0 left-0 bottom-0 shoot" />
+<div class="absolute z-[2] top-0 right-0 left-0 bottom-0 cell shoot" />
 
 <style>
 	.shoot {
-		width: 2.4vmax;
-		height: 2.4vmax;
 		border: 0 solid #ffffff;
 		border-radius: 50%;
 		transform-origin: center center;

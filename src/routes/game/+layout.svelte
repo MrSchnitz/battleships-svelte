@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { derived, writable } from "svelte/store";
-	import { onMount, setContext } from "svelte";
+	import { getContext, onMount, setContext } from "svelte";
 	import type { Ship } from "../../../common/types";
 	import { DEFAULT_SHIPS } from "../../../common/types";
 	import { AppBar, AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
 	import Icon from "@iconify/svelte";
 	import { page } from "$app/stores";
+	import classNames from "classnames";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -38,6 +39,9 @@
 		addShip,
 		removeShip
 	});
+
+	const isConnectedToRoom = writable(false);
+	setContext("isConnectedToRoom", isConnectedToRoom);
 
 	function setIsGameSet(value) {
 		gameSetup.update((state) => ({ ...state, isGameSet: value }));
@@ -75,7 +79,11 @@
 
 <div class="relative h-full">
 	<div class="absolute left-0 top-0 h-full">
-		<AppRail width="h-full w-12 sm:w-24">
+		<AppRail
+			width={`transition-[width] duration-500 md:[&_*]:whitespace-nowrap ${
+				$isConnectedToRoom ? "w-0" : "h-full w-12 sm:w-24"
+			}`}
+		>
 			<AppRailAnchor href="/game" selected={$page.url.pathname === "/game"}>
 				<svelte:fragment slot="lead"
 					><Icon icon="fe:user" class="text-2xl sm:text-4xl" /></svelte:fragment
@@ -98,12 +106,17 @@
 					<span>Play</span>
 				</AppRailAnchor>
 			{/if}
-			<svelte:fragment slot="trail">
-				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>
-			</svelte:fragment>
+<!--			<svelte:fragment slot="trail">-->
+<!--				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>-->
+<!--			</svelte:fragment>-->
 		</AppRail>
 	</div>
-	<div class="h-full w-full pl-12 sm:pl-24 flex flex-col">
+	<div
+		class={classNames(
+			"h-full w-full pl-12 sm:pl-24 flex flex-col transition-[padding] duration-500",
+			$isConnectedToRoom && "!p-0"
+		)}
+	>
 		<AppBar>
 			<svelte:fragment slot="lead">
 				{#if $page.url.pathname === "/game"}
