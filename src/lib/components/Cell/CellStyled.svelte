@@ -15,14 +15,16 @@
 		className
 	)}
 >
-	<slot />
+	<div class="absolute w-full h-full flex items-center justify-center">
+		<slot />
+	</div>
 	<div
 		class={classNames(
 			"absolute z-[1] top-[-0.1vmax] bottom-[-0.1vmax] right-[-0.1vmax] left-[-0.1vmax] rounded-lg",
 			innerClassName
 		)}
 		style="background-color: {color}"
-	></div>
+	/>
 </div>
 
 <style>

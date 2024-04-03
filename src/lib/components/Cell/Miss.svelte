@@ -5,8 +5,11 @@
 
 <style>
 	.miss {
-		width: 0.7vmax;
-		height: 3.8vmax;
+        /*position: absolute;*/
+        /*top: 50%;*/
+        /*left: 50%;*/
+		width: 100%;
+		height: 20%;
 		border-radius: 5px;
 		background: #2d2d2d;
 		transform-origin: center center;
@@ -38,11 +41,4 @@
 		background: #2d2d2d;
 		transform: rotate(90deg);
 	}
-
-    @media only screen and (min-width: 768px) {
-        .miss {
-            width: 0.5vmax;
-            height: 2.4vmax;
-        }
-    }
 </style>

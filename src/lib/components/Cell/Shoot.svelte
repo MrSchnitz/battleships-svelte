@@ -1,10 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import AudioPlayer from "$lib/AudioPlayer";
-
-	// onMount(() => {
-	// 	AudioPlayer.incoming();
-	// });
 </script>
 
 <div class="absolute z-[2] top-0 right-0 left-0 bottom-0 cell shoot" />

@@ -22,8 +22,6 @@ export default function injectSocketIO(server: any) {
 		socket.on(SocketEvents.AFTER_CONNECT, ({ roomId, nick }) => {
 			playerNick = nick;
 
-			console.log("CONNNECT", roomId, nick, rooms);
-
 			if (roomId && rooms.get(roomId)) {
 				room = roomId;
 				const selectedRoom = rooms.get(room);
@@ -65,7 +63,7 @@ export default function injectSocketIO(server: any) {
 				});
 				socket.rooms.delete(room);
 				room = "";
-				io.to(socket.id).emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
+				io.emit(SocketEvents.AVAILABLE_ROOMS, [...rooms.keys()]);
 			}
 		});
 

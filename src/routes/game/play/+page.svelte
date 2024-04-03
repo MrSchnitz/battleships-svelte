@@ -2,14 +2,17 @@
 	import PlayBoard from "$lib/components/Board/PlayBoard.svelte";
 	import { getContext, onDestroy, onMount, setContext } from "svelte";
 	import classNames from "classnames";
-	import { io } from "$lib/weSocketConnection";
+	import SocketAPI from "../../../lib/SocketConnection";
 	import { getModalStore, getToastStore, ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
-	import { SocketEvents, ShotEvent } from "../../../../common/types";
+	import { ShotEvent } from "../../../../common/types";
 	import type { GameStat } from "../../../../common/types";
 	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "$lib/config/consts";
 	import WinGif from "$lib/images/win.gif";
 	import LoseGif from "$lib/images/lose.gif";
 	import AudioPlayer from "$lib/AudioPlayer";
+	import RoomList from "../../../lib/components/Play/RoomList.svelte";
+	import PlayHeader from "$lib/components/Play/PlayHeader.svelte";
+	import TurnCounter from "$lib/components/Play/TurnCounter.svelte";
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
@@ -33,42 +36,38 @@
 			toastStore.trigger({
 				message: "Your turn ended"
 			});
-			io.emit(SocketEvents.TURN_ENDED, $playerNick);
+			SocketAPI.turnEnded($playerNick);
 		}
 	}
 
 	$: isYourTurn = game?.playerTurn === $playerNick;
 
-	$: {
-		console.log("GGG", !!yourRoom)
-		$isConnectedToRoom = !!yourRoom;
-	}
+	$: $isConnectedToRoom = !!yourRoom;
 
 	onMount(() => {
-		io.on(SocketEvents.AVAILABLE_ROOMS, (fetchedRooms) => {
-			rooms = [...fetchedRooms];
-		});
-		io.on(SocketEvents.YOUR_ROOM, (room) => {
-			setYourRoom(room);
-		});
-		io.on(SocketEvents.ROOM_READY, (data) => {
-			setGame(data.game);
-		});
-		io.on(SocketEvents.TURN_ENDED, (data) => {
-			setYourRoom(data.room);
-			setGame(data.game);
-		});
-		io.on(SocketEvents.SHOOT, (res) => {
-			setGame(res.game);
-		});
-		io.on(SocketEvents.AFTER_CONNECT, ({ room, data, availableRooms }) => {
+		SocketAPI.onAfterConnect(({ room, data, availableRooms }) => {
 			setYourRoom(room);
 			game = data;
 			rooms = [...availableRooms];
 			clearTimeoutInterval();
 		});
-
-		io.on(SocketEvents.PLAYER_DISCONNECTED, ({ room, data, availableRooms }) => {
+		SocketAPI.onAvailableRooms((fetchedRooms) => {
+			rooms = [...fetchedRooms];
+		});
+		SocketAPI.onYourRoom((room) => {
+			setYourRoom(room);
+		});
+		SocketAPI.onRoomReady((data) => {
+			setGame(data.game);
+		});
+		SocketAPI.onTurnEnded((data) => {
+			setYourRoom(data.room);
+			setGame(data.game);
+		});
+		SocketAPI.onShoot((res) => {
+			setGame(res.game);
+		});
+		SocketAPI.onPlayerDisconnected(({ room, data, availableRooms }) => {
 			toastStore.trigger({ message: "Other player disconnected..." });
 			setYourRoom(room);
 			game = data;
@@ -76,12 +75,11 @@
 			clearTimeoutInterval();
 		});
 
-		io.emit(SocketEvents.AFTER_CONNECT, { roomId: yourRoom, nick });
+		SocketAPI.afterConnect({ roomId: yourRoom, nick });
 	});
 
 	onDestroy(() => {
-		io.disconnect();
-		io.close();
+		SocketAPI.disconnect();
 		clearTimeoutInterval();
 	});
 
@@ -132,7 +130,7 @@
 					} else {
 						AudioPlayer.lose();
 					}
-					clearState();
+					// clearState();
 					return;
 				}
 			}, 1000);
@@ -152,15 +150,14 @@
 	}
 
 	function onCreateRoom() {
-		console.log("SSS", { userId: $playerNick, board: $board });
-		io.emit(SocketEvents.CREATE_ROOM, {
+		SocketAPI.createRoom({
 			nick: $playerNick,
 			board: $board
 		});
 	}
 
 	function onJoinRoom(room) {
-		io.emit(SocketEvents.JOIN_ROOM, {
+		SocketAPI.joinRoom({
 			room,
 			nick: $playerNick,
 			board: $board
@@ -168,7 +165,10 @@
 	}
 
 	function onDisconnect() {
-		io.emit(SocketEvents.APPLY_DISCONNECT);
+		if (!confirm("Are you sure you want to disconnect?")) {
+			return;
+		}
+		SocketAPI.applyDisconnect();
 		setYourRoom(null);
 		game = null;
 		clearTimeoutInterval();
@@ -176,42 +176,14 @@
 
 	function onClick(x: number, y: number) {
 		clearTimeoutInterval();
-		io.emit(SocketEvents.SHOOT, { nick: $playerNick, shot: { x, y } });
+		SocketAPI.shoot({ nick: $playerNick, shot: { x, y } });
 	}
 </script>
 
 {#if !yourRoom}
-	<div class="h-full w-full grid sm:place-content-center">
-		<div class="card w-full sm:w-[40vmax]">
-			<header class="card-header"><h3 class="h3">Games</h3></header>
-			<section class="p-4">
-				<ListBox>
-					{#each rooms as room}
-						<ListBoxItem name="medium" value={room} on:click={() => onJoinRoom(room)}
-							>{room}</ListBoxItem
-						>
-					{/each}
-				</ListBox>
-				<button type="button" class="mt-4 w-full btn btn-sm variant-filled" on:click={onCreateRoom}
-					>Create room</button
-				>
-			</section>
-		</div>
-	</div>
+	<RoomList {onCreateRoom} {onJoinRoom} />
 {:else}
-	<div
-		class="card p-2 md:p-4 mb-4 flex flex-col gap-1 md:gap-2 sm:flex-row justify-between items-center"
-	>
-		<h3 class="h5 md:h3">Your room: <strong>{yourRoom}</strong></h3>
-		{#if !game}
-			<h4 class="h6 md:h4 animate-pulse">Waiting for opponent...</h4>
-		{/if}
-		<button
-			type="button"
-			class={classNames("btn md:!btn-sm py-0.5 px-2 text-sm variant-filled")}
-			on:click={onDisconnect}>Disconnect</button
-		>
-	</div>
+	<PlayHeader {yourRoom} {onDisconnect} />
 	<div class="flex flex-col sm:flex-row overflow-auto h-full">
 		<div class="w-full grid place-content-center">
 			<div class="card p-4">
@@ -239,30 +211,27 @@
 						label="Your ships"
 						noActions={true}
 					/>
-					<PlayBoard
-						className={classNames(
-							"md:translate-y-0",
-							game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
-						)}
-						size={GAME_BOARD_SIZE}
-						ships={game ? game.playerData.destroyedShips : []}
-						shots={game ? game.playerData.shots : []}
-						currentShot={isYourTurn && (game?.shot?.coords ?? null)}
-						label={isYourTurn ? "Attack!" : "enemy ships"}
-						isActive={isYourTurn}
-						noActions={!game || game.playerTurn !== $playerNick}
-						{onClick}
-					/>
+					{#if !!game}
+						<PlayBoard
+							className={classNames(
+								"md:translate-y-0",
+								game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
+							)}
+							size={GAME_BOARD_SIZE}
+							ships={game ? game.playerData.destroyedShips : []}
+							shots={game ? game.playerData.shots : []}
+							currentShot={isYourTurn && (game?.shot?.coords ?? null)}
+							label={isYourTurn ? "Attack!" : "enemy ships"}
+							isActive={isYourTurn}
+							noActions={!game || game.playerTurn !== $playerNick}
+							{onClick}
+						/>
+					{:else}
+						<h4 class="h5 sm:h4 animate-pulse">Waiting for opponent...</h4>
+					{/if}
 				</div>
 				{#if game}
-					<h3
-						class={classNames(
-							"h3 text-center font-bold mt-4",
-							(!isYourTurn || timer > 3) && "invisible"
-						)}
-					>
-						Your turn ends in... {timer}
-					</h3>
+					<TurnCounter {timer} isVisible={isYourTurn && timer <= 3} />
 				{/if}
 			</div>
 		</div>

@@ -1,15 +1,22 @@
 <script lang="ts">
 	import classNames from "classnames";
 	import { goto } from "$app/navigation";
-	import { getContext } from "svelte";
+	import {getContext, onMount} from "svelte";
 
 	const { isGameSet, playerNick, setPlayerNick } = getContext("gameSetupContext");
 
 	let nickInput = $playerNick;
+	let isNickInputSetFromContext = false;
 	let showContinue = false;
 
 	$: {
-		// nickInput = $playerNick
+		if (!isNickInputSetFromContext && !nickInput && $playerNick) {
+			nickInput = $playerNick;
+			isNickInputSetFromContext = true;
+		}
+	}
+
+	$: {
 		showContinue = nickInput.length >= 3;
 	}
 

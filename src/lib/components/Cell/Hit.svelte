@@ -13,8 +13,8 @@
 		opacity: 0;
 		bottom: 0;
 		position: absolute;
-		width: 2.8vmax;
-		height: 2.8vmax;
+		width: 80%;
+		height: 80%;
 		z-index: 2;
 	}
 
@@ -25,12 +25,12 @@
 
 	.hit-2 {
 		animation-delay: 0.3767041329s;
-		left: 0.1666666667vmax;
+		left: 16%;
 	}
 
 	.hit-3 {
 		animation-delay: 0.7914059508s;
-		left: 0.3333333333vmax;
+		left: 10%;
 	}
 
 	@keyframes fire {
@@ -43,14 +43,7 @@
 		}
 		100% {
 			opacity: 0;
-			transform: translateY(-2vmax) scale(0);
+			transform: translateY(-100%) scale(0);
 		}
 	}
-
-    @media only screen and (min-width: 768px) {
-        .hit {
-            width: 2vmax;
-            height: 2vmax;
-        }
-    }
 </style>

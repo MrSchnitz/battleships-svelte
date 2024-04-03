@@ -61,7 +61,11 @@ export default class Game implements IGame {
 			selectedPlayer.setShot(shot);
 			selectedPlayer.destroyedShips = otherPlayer.getDestroyedShips();
 
-			this.checkWin(selectedPlayer);
+			if (this.checkWin(selectedPlayer)) {
+				this.win = selectedPlayer.nick;
+				selectedPlayer.destroyedShips = [...otherPlayer.ships];
+				otherPlayer.destroyedShips = [...selectedPlayer.ships];
+			}
 
 			this.playerTurn = [ShotEvent.HIT, ShotEvent.DESTROY].includes(shot.type)
 				? selectedPlayer.nick
@@ -82,7 +86,9 @@ export default class Game implements IGame {
 				player.destroyedShips.some((ship) => ship.type === type)
 			)
 		) {
-			this.win = player.nick;
+			return true
 		}
+
+		return false;
 	}
 }

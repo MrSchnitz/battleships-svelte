@@ -72,7 +72,7 @@
 						<div class="hidden sm:ml-6 sm:block">
 							<div class="flex space-x-4">
 								<NavItem href="/" title="Home" isActive={$page.url.pathname === "/"} />
-								<NavItem href="/game" title="Game" isActive={$page.url.pathname === "/game"} />
+								<NavItem href="/game" title="Game" isActive={$page.url.pathname.includes("game")} />
 							</div>
 						</div>
 					</div>
@@ -88,7 +88,7 @@
 			>
 				<div class="space-y-1 px-2 pb-3 pt-2">
 					<NavItem href="/" title="Home" isActive={$page.url.pathname === "/"} />
-					<NavItem href="/game" title="Game" isActive={$page.url.pathname === "/game"} />
+					<NavItem href="/game" title="Game" isActive={$page.url.pathname.includes("game")} />
 				</div>
 			</div>
 		</nav>
