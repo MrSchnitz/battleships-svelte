@@ -13,6 +13,8 @@
 	import RoomList from "../../../lib/components/Play/RoomList.svelte";
 	import PlayHeader from "$lib/components/Play/PlayHeader.svelte";
 	import TurnCounter from "$lib/components/Play/TurnCounter.svelte";
+	import { fade } from "svelte/transition";
+	import GameHeader from "$lib/components/Play/GameHeader.svelte";
 
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
@@ -30,7 +32,7 @@
 	let isYourTurn = false;
 
 	$: {
-		if (timer <= 0) {
+		if (timer <= -1) {
 			clearTimeoutInterval();
 
 			toastStore.trigger({
@@ -63,6 +65,12 @@
 		SocketAPI.onTurnEnded((data) => {
 			setYourRoom(data.room);
 			setGame(data.game);
+
+			if (data.game.playerTurn === $playerNick) {
+				toastStore.trigger({
+					message: "Your turn"
+				});
+			}
 		});
 		SocketAPI.onShoot((res) => {
 			setGame(res.game);
@@ -93,8 +101,7 @@
 		rooms = [];
 		setYourRoom(null);
 		game = null;
-		playerTurnTimeout = null;
-		timer = TIMEOUT_TIMER;
+		clearTimeoutInterval();
 	}
 
 	function setGame(newGame: GameStat | null) {
@@ -130,7 +137,7 @@
 					} else {
 						AudioPlayer.lose();
 					}
-					// clearState();
+					clearTimeoutInterval();
 					return;
 				}
 			}, 1000);
@@ -169,35 +176,27 @@
 			return;
 		}
 		SocketAPI.applyDisconnect();
-		setYourRoom(null);
-		game = null;
-		clearTimeoutInterval();
+		clearState();
 	}
 
 	function onClick(x: number, y: number) {
 		clearTimeoutInterval();
 		SocketAPI.shoot({ nick: $playerNick, shot: { x, y } });
 	}
+
+	function onLeave() {
+		clearState();
+	}
 </script>
 
 {#if !yourRoom}
 	<RoomList {onCreateRoom} {onJoinRoom} />
 {:else}
-	<PlayHeader {yourRoom} {onDisconnect} />
+	<PlayHeader {yourRoom} {onDisconnect} onLeave={game?.win ? onLeave : null} />
 	<div class="flex flex-col sm:flex-row overflow-auto h-full">
 		<div class="w-full grid place-content-center">
-			<div class="card p-4">
-				{#if game}
-					<div class="card-header">
-						<h3 class="h3 text-center font-bold mb-4">
-							{#if isYourTurn}
-								Your turn
-							{:else}
-								Enemy turn
-							{/if}
-						</h3>
-					</div>
-				{/if}
+			<div class="card relative p-4">
+				<GameHeader {game} {isYourTurn} {onLeave} />
 				<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
 					<PlayBoard
 						className={classNames(
@@ -222,16 +221,16 @@
 							shots={game ? game.playerData.shots : []}
 							currentShot={isYourTurn && (game?.shot?.coords ?? null)}
 							label={isYourTurn ? "Attack!" : "enemy ships"}
-							isActive={isYourTurn}
-							noActions={!game || game.playerTurn !== $playerNick}
+							isActive={isYourTurn || game.win}
+							noActions={!game || game.playerTurn !== $playerNick || !!game.win}
 							{onClick}
 						/>
 					{:else}
 						<h4 class="h5 sm:h4 animate-pulse">Waiting for opponent...</h4>
 					{/if}
 				</div>
-				{#if game}
-					<TurnCounter {timer} isVisible={isYourTurn && timer <= 3} />
+				{#if game && isYourTurn && timer <= 3}
+					<TurnCounter {timer} />
 				{/if}
 			</div>
 		</div>

@@ -5,9 +5,6 @@
 
 <style>
 	.miss {
-        /*position: absolute;*/
-        /*top: 50%;*/
-        /*left: 50%;*/
 		width: 100%;
 		height: 20%;
 		border-radius: 5px;

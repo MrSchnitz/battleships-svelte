@@ -34,19 +34,6 @@
 		onDragMove({ top, bottom, left, right });
 	}
 
-	document.addEventListener(
-		"contextmenu",
-		(event) => {
-			if (move) {
-				event.preventDefault();
-				event.stopPropagation();
-				doTransform = !doTransform;
-				requestAnimationFrame(() => handleMouseMove(event));
-			}
-		},
-		{ capture: true }
-	);
-
 	document.addEventListener("mousemove", (event) => {
 		if (move) {
 			event.preventDefault();
@@ -77,7 +64,6 @@
 			doTransform = false;
 			isHovered = false;
 			document.body.style.overflow = "auto";
-			// document.getElementById("create-page-wrapper").style.touchAction = "auto"
 
 			onDragEnd();
 		}
@@ -93,7 +79,6 @@
 		console.log("HMM", event);
 		event.preventDefault();
 		document.body.style.overflow = "hidden";
-		// document.getElementById("create-page-wrapper").style.touchAction = "none"
 		handleTouchMove(event);
 		move = true;
 		onDragStart();

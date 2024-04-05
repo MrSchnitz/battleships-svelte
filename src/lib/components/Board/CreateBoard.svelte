@@ -8,6 +8,8 @@
 	import type { Ship, ShipCoordinate, ShipType } from "../../../../common/types";
 	import type { ShipDragDimension } from "../../config/types";
 	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
+	import { slide, fade } from "svelte/transition";
+	import { quintOut } from "svelte/easing";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
@@ -21,7 +23,9 @@
 	export let size: number = 0;
 	export let addShip: (ship: Ship) => void = null;
 	export let removeShip: (ship: Ship) => void = null;
+	export let randomizeShips: () => void = null;
 	export let selectedShips: Ship[] = [];
+	export let isGameSet: boolean = true;
 
 	const cellArray = create2DArray(size);
 
@@ -81,7 +85,7 @@
 			selectedShip.coords.find((coord) => coord.x === x && coord.y === y)
 		);
 
-		if (foundShip) {
+		if (foundShip && !activeShipType) {
 			shipToDelete = foundShip;
 		} else if (shipToDelete) {
 			shipToDelete = null;
@@ -116,55 +120,66 @@
 </script>
 
 <div>
-	<!--{#if shipToDelete && mousePosition}-->
-	<!--	<div class="fixed" style="left: {mousePosition.x}px; top: {mousePosition.y}px">X</div>-->
-	<!--{/if}-->
-	<div class="flex flex-col sm:flex-row gap-8 sm:gap-16">
-		<div class="w-full flex flex-col justify-between">
+	<div class="flex flex-col sm:flex-row gap-3 sm:gap-16">
+		{#if !isGameSet}
 			<div
-				class={classNames(
-					"flex items-start gap-3 w-[15vmax] h-[20vmax]",
-					isRotated ? "flex-row" : "flex-col"
-				)}
+				transition:slide={{ duration: 500, delay: 100, axis: "x" }}
+				class="flex flex-col justify-between p-4 sm:p-0"
 			>
-				{#each SHIPS as type, i}
-					<ShipDrag
-						onDragMove={onShipDragMove}
-						onDragStart={() => onShipDragStart(type)}
-						onDragEnd={() => onShipDragEnd(type)}
-					>
-						<ShipCreator {type} {isRotated} />
-					</ShipDrag>
-				{/each}
+				<div
+					class={classNames(
+						"flex items-start gap-2.5 w-[15vmax] h-[24vmax] md:h-full",
+						isRotated ? "flex-row" : "flex-col"
+					)}
+				>
+					{#each SHIPS as type, i}
+						<ShipDrag
+							onDragMove={onShipDragMove}
+							onDragStart={() => onShipDragStart(type)}
+							onDragEnd={() => onShipDragEnd(type)}
+						>
+							<ShipCreator {type} {isRotated} />
+						</ShipDrag>
+					{/each}
+				</div>
+				<button class="mt-4 btn btn-sm variant-filled-primary" on:click={toggleRotated}
+					>Rotate ships</button
+				>
+				<button class="mt-2 md:mb-24 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
+					>Random set</button
+				>
 			</div>
-			<button class="mt-4 btn btn-sm variant-filled" on:click={toggleRotated}>Rotate ships</button>
-		</div>
-		<BoardWrapper {size}>
-			{#each cellArray as cell}
-				{#each cell as item}
-					<Cell
-						x={item.x}
-						y={item.y}
-						shipType={selectedShips.find((selectedShip) =>
-							selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-						)?.type ?? activeShipType}
-						{dragPosition}
-						isSelected={Boolean(
-							selectedShips.find((selectedShip) =>
+		{/if}
+		<div>
+			<BoardWrapper {size}>
+				{#each cellArray as cell}
+					{#each cell as item}
+						<Cell
+							x={item.x}
+							y={item.y}
+							shipType={selectedShips.find((selectedShip) =>
 								selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-							)
-						)}
-						isActive={Boolean(hoveredCells.find((c) => c.x === item.x && c.y === item.y))}
-						isDelete={Boolean(
-							shipToDelete?.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-						)}
-						{onDragHover}
-						{onDragBlur}
-						{onHover}
-						{onDuplicated}
-					/>
+							)?.type ?? activeShipType}
+							{dragPosition}
+							isSelected={Boolean(
+								selectedShips.find((selectedShip) =>
+									selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
+								)
+							)}
+							isActive={Boolean(hoveredCells.find((c) => c.x === item.x && c.y === item.y))}
+							isDelete={!isOnDuplicated &&
+								Boolean(
+									shipToDelete?.coords.find((coord) => coord.x === item.x && coord.y === item.y)
+								)}
+							{onDragHover}
+							{onDragBlur}
+							{onHover}
+							{onDuplicated}
+						/>
+					{/each}
 				{/each}
-			{/each}
-		</BoardWrapper>
+			</BoardWrapper>
+			<slot />
+		</div>
 	</div>
 </div>

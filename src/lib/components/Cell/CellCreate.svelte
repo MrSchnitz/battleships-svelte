@@ -3,6 +3,8 @@
 	import CellStyled from "$lib/components/Cell/CellStyled.svelte";
 	import type { ShipType } from "../../../../common/types";
 	import { SHIP_COLORS } from "../../../../common/types";
+	import Duplicated from "$lib/components/Cell/Duplicated.svelte";
+	import Delete from "$lib/components/Cell/Delete.svelte";
 
 	let cellElement: HTMLDivElement;
 	let isDuplicated: boolean = false;
@@ -70,25 +72,12 @@
 	on:mouseenter={onMouseEnter}
 	on:mouseleave={onMouseLeave}
 	bind:this={cellElement}
+	data-shiptype={shipType}
 >
-	<CellStyled
-		isSelected={!isDuplicated && !isDelete && isSelected}
-		color={isSelected || isActive ? SHIP_COLORS[shipType] : ""}
-		innerClassName={classNames({
-			"cell--delete": !isDuplicated && isSelected && isDelete,
-			"cell--duplicated": isDuplicated
-		})}
-	/>
+	<CellStyled color={isSelected || isActive ? SHIP_COLORS[shipType] : ""}>
+		{#if isDuplicated}<Duplicated />{/if}
+		{#if !isDuplicated && isSelected && isDelete}
+			<Delete />
+		{/if}
+	</CellStyled>
 </div>
-
-<style>
-	.cell--duplicated {
-		border: none;
-		background-color: black !important;
-	}
-
-	.cell--delete {
-		border: 2px solid red;
-		/*background-color: blue;*/
-	}
-</style>

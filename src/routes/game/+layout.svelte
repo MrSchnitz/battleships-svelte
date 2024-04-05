@@ -7,6 +7,8 @@
 	import Icon from "@iconify/svelte";
 	import { page } from "$app/stores";
 	import classNames from "classnames";
+	import { create2DArray } from "$lib/util";
+	import { GAME_BOARD_SIZE } from "$lib/config/consts";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -14,10 +16,12 @@
 		playerNick: "",
 		board: []
 	});
+	const isConnectedToRoom = writable(false);
 
 	onMount(() => {
 		const playerNick = sessionStorage.getItem("nick") ?? "";
 		const board = JSON.parse(sessionStorage.getItem("board")) ?? [];
+		$selectedShips = board;
 
 		gameSetup.set({
 			isGameSet: board.length > 0,
@@ -29,19 +33,15 @@
 	function addShip(addedShip: Ship) {
 		selectedShips.update((arr) => [...arr, addedShip]);
 	}
-
 	function removeShip(ship: Ship) {
 		selectedShips.update((value) => value.filter((v) => v.type !== ship.type));
 	}
-
-	setContext("selectedShips", {
-		selectedShips,
-		addShip,
-		removeShip
-	});
-
-	const isConnectedToRoom = writable(false);
-	setContext("isConnectedToRoom", isConnectedToRoom);
+	function resetShips() {
+		selectedShips.set([]);
+	}
+	function randomizeShips() {
+		const shipsArray = create2DArray(GAME_BOARD_SIZE);
+	}
 
 	function setIsGameSet(value) {
 		gameSetup.update((state) => ({ ...state, isGameSet: value }));
@@ -66,6 +66,14 @@
 		setPlayerNick,
 		setBoard
 	});
+	setContext("selectedShips", {
+		selectedShips,
+		addShip,
+		removeShip,
+		resetShips,
+		randomizeShips
+	});
+	setContext("isConnectedToRoom", isConnectedToRoom);
 
 	$: {
 		gameSetup.update((state) => ({
@@ -73,8 +81,6 @@
 			isGameSet: DEFAULT_SHIPS.length === $selectedShips.length
 		}));
 	}
-
-	console.log("PPP", $page.url.pathname);
 </script>
 
 <div class="relative h-full">
@@ -88,15 +94,17 @@
 				<svelte:fragment slot="lead"
 					><Icon icon="fe:user" class="text-2xl sm:text-4xl" /></svelte:fragment
 				>
-				<span class="text-xs sm:text-base">Setup nick</span>
+				<span>Setup nick</span>
 			</AppRailAnchor>
 
-			<AppRailAnchor href="/game/create" selected={$page.url.pathname === "/game/create"}>
-				<svelte:fragment slot="lead"
-					><Icon icon="fe:map" class="text-2xl sm:text-4xl" /></svelte:fragment
-				>
-				<span>Create board</span>
-			</AppRailAnchor>
+			{#if $gameSetup.playerNick}
+				<AppRailAnchor href="/game/create" selected={$page.url.pathname === "/game/create"}>
+					<svelte:fragment slot="lead"
+						><Icon icon="fe:map" class="text-2xl sm:text-4xl" /></svelte:fragment
+					>
+					<span>Create board</span>
+				</AppRailAnchor>
+			{/if}
 
 			{#if $gameSetup.isGameSet}
 				<AppRailAnchor href="/game/play" selected={$page.url.pathname === "/game/play"}>
@@ -106,9 +114,9 @@
 					<span>Play</span>
 				</AppRailAnchor>
 			{/if}
-<!--			<svelte:fragment slot="trail">-->
-<!--				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>-->
-<!--			</svelte:fragment>-->
+			<!--			<svelte:fragment slot="trail">-->
+			<!--				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>-->
+			<!--			</svelte:fragment>-->
 		</AppRail>
 	</div>
 	<div
@@ -117,18 +125,18 @@
 			$isConnectedToRoom && "!p-0"
 		)}
 	>
-		<AppBar>
+		<AppBar padding="px-3 py-2 md:p-4">
 			<svelte:fragment slot="lead">
 				{#if $page.url.pathname === "/game"}
-					<h1 class="text-center text-xl uppercase">Setup nick</h1>
+					<h1 class="text-center md:text-xl uppercase">Setup nick</h1>
 				{:else if $page.url.pathname === "/game/create"}
-					<h1 class="text-center text-xl uppercase">Deploy your ships</h1>
+					<h1 class="text-center md:text-xl uppercase">Deploy your ships</h1>
 				{:else}
-					<h1 class="text-center text-xl uppercase">Play</h1>
+					<h1 class="text-center md:text-xl uppercase">Play</h1>
 				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<h3 class="h3"><strong>{$gameSetup.playerNick}</strong></h3>
+				<h3 class="h4"><strong>{$gameSetup.playerNick}</strong></h3>
 			</svelte:fragment>
 		</AppBar>
 		<slot />
