@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { derived, writable } from "svelte/store";
-	import { getContext, onMount, setContext } from "svelte";
+	import { onMount, setContext } from "svelte";
 	import type { Ship } from "../../../common/types";
 	import { DEFAULT_SHIPS } from "../../../common/types";
-	import { AppBar, AppRail, AppRailAnchor, AppRailTile, AppShell } from "@skeletonlabs/skeleton";
+	import { AppBar, AppRail, AppRailAnchor } from "@skeletonlabs/skeleton";
 	import Icon from "@iconify/svelte";
 	import { page } from "$app/stores";
 	import classNames from "classnames";
-	import { create2DArray } from "$lib/util";
 	import { GAME_BOARD_SIZE } from "$lib/config/consts";
+	import { placeShipsRandomly } from "$lib/utils/placeShipsRandomly";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -40,7 +40,8 @@
 		selectedShips.set([]);
 	}
 	function randomizeShips() {
-		const shipsArray = create2DArray(GAME_BOARD_SIZE);
+		const randomShips = placeShipsRandomly(GAME_BOARD_SIZE);
+		selectedShips.set(randomShips);
 	}
 
 	function setIsGameSet(value) {

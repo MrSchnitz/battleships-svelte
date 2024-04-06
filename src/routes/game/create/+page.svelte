@@ -5,7 +5,8 @@
 	import { goto } from "$app/navigation";
 	import { GAME_BOARD_SIZE } from "$lib/config/consts";
 
-	const { selectedShips, addShip, removeShip, resetShips, randomizeShips } = getContext("selectedShips");
+	const { selectedShips, addShip, removeShip, resetShips, randomizeShips } =
+		getContext("selectedShips");
 
 	const { isGameSet, setBoard } = getContext("gameSetupContext");
 
@@ -32,11 +33,14 @@
 	>
 		<div
 			class={classNames(
-				"w-full transition-opacity duration-500",
-				!$isGameSet && "opacity-0",
-				$isGameSet && "delay-[400ms]"
+				"w-full transition-opacity",
+				!$isGameSet && "opacity-0 duration-100",
+				$isGameSet && "duration-500 delay-[400ms]"
 			)}
 		>
+			<button class="w-full mt-2 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
+				>Random set</button
+			>
 			<button
 				class={classNames("w-full mt-2 btn btn-sm variant-filled-error")}
 				on:click={onResetShips}>Reset</button

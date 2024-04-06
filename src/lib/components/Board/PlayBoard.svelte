@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Cell from "../Cell/CellPlay.svelte";
-	import { create2DArray } from "$lib/util";
+	import { create2DArray } from "$lib/utils/create2DArray";
 	import type { Coordinate, Ship, Shot } from "../../../../common/types";
 	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
 	import { ShotEvent } from "../../../../common/types";
@@ -18,7 +18,7 @@
 	const cellArray = create2DArray(size);
 </script>
 
-<BoardWrapper {size} {label} {noActions} {isActive} {className}>
+<BoardWrapper {size} {label} {noActions} {isActive} {className} on:dim>
 	{#each cellArray as cell}
 		{#each cell as item}
 			<Cell

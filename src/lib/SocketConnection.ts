@@ -2,7 +2,7 @@ import ioClient, { Socket } from "socket.io-client";
 import { SocketEvents } from "../../common/types";
 
 // const ENDPOINT = "http://localhost:3000";
-const ENDPOINT = 'http://10.0.0.17:3000';
+const ENDPOINT = "http://10.0.0.17:3000";
 // const ENDPOINT = 'http://192.168.1.115:3000';
 
 class SocketAPI {
@@ -40,6 +40,12 @@ class SocketAPI {
 	}
 	public onPlayerDisconnected(callback: (data: any) => void) {
 		this.socket.on(SocketEvents.PLAYER_DISCONNECTED, callback);
+	}
+
+	public connect() {
+		if (!this.socket.active) {
+			this.socket.connect();
+		}
 	}
 
 	public afterConnect(data: any) {

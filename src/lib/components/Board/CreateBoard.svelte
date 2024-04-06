@@ -3,10 +3,10 @@
 	import classNames from "classnames";
 	import ShipCreator from "$lib/components/ShipCreator.svelte";
 	import ShipDrag from "$lib/components/ShipDrag.svelte";
-	import { create2DArray } from "$lib/util";
+	import { create2DArray } from "$lib/utils/create2DArray";
 	import { DEFAULT_SHIPS, SHIP_SPACES } from "../../../../common/types";
 	import type { Ship, ShipCoordinate, ShipType } from "../../../../common/types";
-	import type { ShipDragDimension } from "../../config/types";
+	import type { ShipDragDimension } from "$lib/config/types";
 	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
 	import { slide, fade } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
@@ -45,7 +45,7 @@
 
 	function onShipDragEnd(shipType: ShipType) {
 		if (isOnDuplicated) {
-			alert("Tady to nejde!");
+			alert("Not allowed here!");
 		} else if (hoveredCells.length > 0 && hoveredCells.length === SHIP_SPACES[shipType]) {
 			addShip({ type: shipType, coords: hoveredCells, destroyed: false });
 		}
@@ -108,7 +108,7 @@
 	});
 
 	document.addEventListener("click", (event) => {
-		if (shipToDelete && confirm("Opravdu smazat lod?")) {
+		if (shipToDelete && confirm("Do you really want to remove ship?")) {
 			removeShip(shipToDelete);
 			shipToDelete = null;
 		}
@@ -120,11 +120,11 @@
 </script>
 
 <div>
-	<div class="flex flex-col sm:flex-row gap-3 sm:gap-16">
+	<div class="flex flex-col sm:flex-row">
 		{#if !isGameSet}
 			<div
-				transition:slide={{ duration: 500, delay: 100, axis: "x" }}
-				class="flex flex-col justify-between p-4 sm:p-0"
+				transition:slide={{ duration: 500, axis: "x" }}
+				class="flex flex-col justify-between p-4 sm:p-0 mb-3 sm:mb-0 md:mr-16"
 			>
 				<div
 					class={classNames(
@@ -145,7 +145,7 @@
 				<button class="mt-4 btn btn-sm variant-filled-primary" on:click={toggleRotated}
 					>Rotate ships</button
 				>
-				<button class="mt-2 md:mb-24 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
+				<button class="mt-2 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
 					>Random set</button
 				>
 			</div>
@@ -179,7 +179,7 @@
 					{/each}
 				{/each}
 			</BoardWrapper>
-			<slot />
 		</div>
 	</div>
+	<slot />
 </div>

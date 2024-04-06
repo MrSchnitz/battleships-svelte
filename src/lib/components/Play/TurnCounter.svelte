@@ -13,7 +13,7 @@
 
 <div
 	transition:scale={{ duration: 500, opacity: 1, easing: quintOut }}
-	class="absolute z-[100] top-[35%] md:top-[50%] left-[50%] translate-x-[-50%] translate-y-[-65%] md:translate-y-[-50%] text-center italic font-bold [&_*]:text-9xl hover:z-[0]"
+	class="absolute z-[100] top-[35%] md:top-[50%] left-[50%] translate-x-[-50%] translate-y-[-65%] md:translate-y-[-50%] text-center italic font-bold [&_*]:text-9xl pointer-events-none"
 >
 	<ProgressRadial {value}>
 		{timer}

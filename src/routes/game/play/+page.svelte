@@ -30,6 +30,7 @@
 	let playerTurnTimeout = null;
 	let timer = TIMEOUT_TIMER;
 	let isYourTurn = false;
+	let playBoardWidth: string = "auto";
 
 	$: {
 		if (timer <= -1) {
@@ -46,12 +47,23 @@
 
 	$: $isConnectedToRoom = !!yourRoom;
 
+	$: {
+		if (yourRoom) {
+			setPlayBoardWidth();
+		}
+	}
+
 	onMount(() => {
 		SocketAPI.onAfterConnect(({ room, data, availableRooms }) => {
 			setYourRoom(room);
 			game = data;
 			rooms = [...availableRooms];
-			clearTimeoutInterval();
+
+			if (game) {
+				setTurnTimeoutInterval(game);
+			} else {
+				clearTimeoutInterval();
+			}
 		});
 		SocketAPI.onAvailableRooms((fetchedRooms) => {
 			rooms = [...fetchedRooms];
@@ -76,6 +88,7 @@
 			setGame(res.game);
 		});
 		SocketAPI.onPlayerDisconnected(({ room, data, availableRooms }) => {
+			console.log("HMMMM");
 			toastStore.trigger({ message: "Other player disconnected..." });
 			setYourRoom(room);
 			game = data;
@@ -83,6 +96,7 @@
 			clearTimeoutInterval();
 		});
 
+		SocketAPI.connect();
 		SocketAPI.afterConnect({ roomId: yourRoom, nick });
 	});
 
@@ -91,10 +105,11 @@
 		clearTimeoutInterval();
 	});
 
-	function clearTimeoutInterval() {
-		timer = TIMEOUT_TIMER;
-		clearInterval(playerTurnTimeout);
-		playerTurnTimeout = null;
+	function setPlayBoardWidth(event: CustomEvent) {
+		if (event?.detail) {
+			const dim: DOMRect = event.detail;
+			playBoardWidth = dim?.width ? `${dim.width}px` : "auto";
+		}
 	}
 
 	function clearState() {
@@ -104,50 +119,68 @@
 		clearTimeoutInterval();
 	}
 
+	function clearTimeoutInterval() {
+		timer = TIMEOUT_TIMER;
+		clearInterval(playerTurnTimeout);
+		playerTurnTimeout = null;
+	}
+
+	function setTurnTimeoutInterval(game: GameStat | null) {
+		if (game && game.playerTurn === $playerNick) {
+			clearTimeoutInterval();
+			playerTurnTimeout = setInterval(() => timer--, TIMEOUT_INTERVAL);
+		}
+	}
+
 	function setGame(newGame: GameStat | null) {
 		if (newGame?.shot && game) {
 			game = { ...game, shot: newGame.shot };
 
 			setTimeout(() => {
-				switch (newGame?.shot?.type) {
-					case ShotEvent.DESTROY:
-						AudioPlayer.totalExplosion();
-						break;
-					case ShotEvent.HIT:
-						AudioPlayer.hit();
-						break;
-					case ShotEvent.MISS:
-						AudioPlayer.plop();
-						break;
-					default:
-						break;
-				}
-
+				playShot(newGame);
 				game = { ...newGame, shot: null };
-
-				if (newGame?.win) {
-					modalStore.trigger({
-						type: "alert",
-						title: $playerNick === newGame.win ? "You are the winner!" : `${newGame.win} has won!`,
-						image: $playerNick === newGame.win ? WinGif : LoseGif
-					});
-
-					if ($playerNick === newGame.win) {
-						AudioPlayer.win();
-					} else {
-						AudioPlayer.lose();
-					}
-					clearTimeoutInterval();
-					return;
-				}
-			}, 1000);
+				checkGameWin(newGame);
+			}, 2000);
 		} else {
 			game = newGame;
 		}
 
-		if (newGame && newGame.playerTurn === $playerNick) {
-			timer = TIMEOUT_TIMER;
-			playerTurnTimeout = setInterval(() => timer--, TIMEOUT_INTERVAL);
+		setTurnTimeoutInterval(newGame);
+	}
+
+	function playShot(game: GameStat | null) {
+		switch (game?.shot?.type) {
+			case ShotEvent.DESTROY:
+				AudioPlayer.totalExplosion();
+				break;
+			case ShotEvent.HIT:
+				AudioPlayer.hit();
+				break;
+			case ShotEvent.MISS:
+				AudioPlayer.plop();
+				break;
+			default:
+				break;
+		}
+	}
+
+	function checkGameWin(game: GameStat | null) {
+		if (game?.win) {
+			const isYourWin = $playerNick === game.win;
+
+			modalStore.trigger({
+				type: "alert",
+				title: isYourWin ? "You are the winner!" : `${game.win} has won!`,
+				image: isYourWin ? WinGif : LoseGif
+			});
+
+			if (isYourWin) {
+				AudioPlayer.win();
+			} else {
+				AudioPlayer.lose();
+			}
+			clearTimeoutInterval();
+			return;
 		}
 	}
 
@@ -171,28 +204,28 @@
 		});
 	}
 
-	function onDisconnect() {
-		if (!confirm("Are you sure you want to disconnect?")) {
-			return;
-		}
-		SocketAPI.applyDisconnect();
-		clearState();
-	}
-
 	function onClick(x: number, y: number) {
 		clearTimeoutInterval();
 		SocketAPI.shoot({ nick: $playerNick, shot: { x, y } });
 	}
 
 	function onLeave() {
-		clearState();
+		if (game?.win) {
+			clearState();
+		} else {
+			if (!confirm("Are you sure you want to leave?")) {
+				return;
+			}
+			SocketAPI.applyDisconnect();
+			clearState();
+		}
 	}
 </script>
 
 {#if !yourRoom}
 	<RoomList {onCreateRoom} {onJoinRoom} />
 {:else}
-	<PlayHeader {yourRoom} {onDisconnect} onLeave={game?.win ? onLeave : null} />
+	<PlayHeader {yourRoom} {onLeave} />
 	<div class="flex flex-col sm:flex-row overflow-auto h-full">
 		<div class="w-full grid place-content-center">
 			<div class="card relative p-4">
@@ -209,6 +242,7 @@
 						currentShot={!isYourTurn && (game?.shot?.coords ?? null)}
 						label="Your ships"
 						noActions={true}
+						on:dim={setPlayBoardWidth}
 					/>
 					{#if !!game}
 						<PlayBoard
@@ -226,7 +260,9 @@
 							{onClick}
 						/>
 					{:else}
-						<h4 class="h5 sm:h4 animate-pulse">Waiting for opponent...</h4>
+						<h4 class="h5 sm:h4 text-center animate-pulse" style="min-width: {playBoardWidth}">
+							Waiting for opponent...
+						</h4>
 					{/if}
 				</div>
 				{#if game && isYourTurn && timer <= 3}

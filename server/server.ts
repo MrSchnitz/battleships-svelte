@@ -37,7 +37,10 @@ export default function injectSocketIO(server: any) {
 
 					io.to(socket.id).emit(SocketEvents.AFTER_CONNECT, {
 						room,
-						data: selectedRoom.players.length < 2 ? null : selectedRoom.getAfterConnectStatsForPlayer(nick),
+						data:
+							selectedRoom.players.length < 2
+								? null
+								: selectedRoom.getAfterConnectStatsForPlayer(nick),
 						availableRooms: selectedRoom.players.length < 2 ? getAvailableRooms() : []
 					});
 				}
@@ -74,16 +77,20 @@ export default function injectSocketIO(server: any) {
 		socket.on(SocketEvents.DISCONNECT, () => {
 			console.log("A user disconnected");
 			if (room) {
-				// Set a timeout to remove the user from rooms if not reconnected within 30 seconds
+				// Set a timeout to remove the user from rooms if not reconnected within 15 seconds
 				const timeoutId = setTimeout(() => {
 					const selectedRoom = [...rooms.keys()].find((r) => r === room);
 
 					if (selectedRoom) {
-						io.to(selectedRoom).emit(SocketEvents.PLAYER_DISCONNECTED);
+						io.to(selectedRoom).emit(SocketEvents.PLAYER_DISCONNECTED, {
+							room: null,
+							data: null,
+							availableRooms: getAvailableRooms()
+						});
 						socket.rooms.delete(room);
 						rooms.delete(room);
 					}
-				}, 10000); // 30 seconds
+				}, 15000); // 15 seconds
 
 				// Store the disconnect timer for later reference
 				disconnectTimeouts.set(playerNick, timeoutId);
@@ -145,7 +152,7 @@ export default function injectSocketIO(server: any) {
 				if (selectedRoom.win) {
 					socket.rooms.delete(room);
 					rooms.delete(room);
-					room = ""
+					room = "";
 				}
 			}
 		});
