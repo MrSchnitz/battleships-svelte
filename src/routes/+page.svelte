@@ -19,7 +19,8 @@
 <style>
 	.bg-image {
 		background-image: url("$lib/images/bt_bg4.jpg");
-		background-size: auto;
+		background-size: cover;
 		background-position: center;
+		background-repeat: no-repeat;
 	}
 </style>

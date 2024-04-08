@@ -43,17 +43,14 @@
 		const randomShips = placeShipsRandomly(GAME_BOARD_SIZE);
 		selectedShips.set(randomShips);
 	}
-
 	function setIsGameSet(value) {
 		gameSetup.update((state) => ({ ...state, isGameSet: value }));
 	}
-
 	function setPlayerNick(value, callback) {
 		gameSetup.update((state) => ({ ...state, playerNick: value }));
 		sessionStorage.setItem("nick", value);
 		callback();
 	}
-
 	function setBoard(value) {
 		gameSetup.update((state) => ({ ...state, board: value }));
 		sessionStorage.setItem("board", JSON.stringify(value));

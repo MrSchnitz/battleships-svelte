@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"moduleResolution": "node",
+		"outDir": "../build/mainServer",
+		"allowSyntheticDefaultImports": true
+	},
+	"exclude": ["node_modules"]
+}

@@ -30,7 +30,7 @@
 
 <AppShell>
 	<svelte:fragment slot="header">
-		<nav class="bg-surface-800">
+		<nav class="relative bg-surface-800">
 			<div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
 				<div class="relative flex h-16 items-center justify-between">
 					<div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -67,7 +67,9 @@
 					<div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
 						<div class="flex flex-shrink-0 items-center">
 							<Icon icon="majesticons:ship" class="h-8 w-8 text-white" />
-							<h2 class="ml-4 h2 font-bold text-white"><a href="/">BattleShips</a></h2>
+							<h2 class="ml-4 h2 font-bold text-white cursor-pointer">
+								<a href="/">BattleShips</a>
+							</h2>
 						</div>
 						<div class="hidden sm:ml-6 sm:block">
 							<div class="flex space-x-4">
@@ -81,7 +83,7 @@
 
 			<!-- Mobile menu, show/hide based on menu state. -->
 			<div
-				class="sm:hidden overflow-hidden transition-[max-height] duration-500"
+				class="absolute top-auto bg-surface-800 w-full sm:hidden overflow-hidden transition-[max-height] duration-500"
 				id="mobile-menu"
 				style="max-height: {isMobileMenuOpen ? `${menuElement?.scrollHeight ?? 0}px` : 0}"
 				bind:this={menuElement}
@@ -93,17 +95,14 @@
 			</div>
 		</nav>
 	</svelte:fragment>
-	<!-- (sidebarRight) -->
-	<!-- (pageHeader) -->
-	<!-- Router Slot -->
 	<main class="bg-surface-200 h-full">
 		<slot />
 	</main>
 	<!-- ---- / ---- -->
 	<!-- (pageFooter) -->
-<!--	<svelte:fragment slot="footer"-->
-<!--		><footer class="bg-surface-800 p-2 text-xs text-white">-->
-<!--			All rights reserved.-->
-<!--		</footer></svelte:fragment-->
-<!--	>-->
+	<!--	<svelte:fragment slot="footer"-->
+	<!--		><footer class="bg-surface-800 p-2 text-xs text-white">-->
+	<!--			All rights reserved.-->
+	<!--		</footer></svelte:fragment-->
+	<!--	>-->
 </AppShell>

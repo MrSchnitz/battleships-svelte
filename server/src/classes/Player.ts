@@ -1,5 +1,5 @@
-import type { Coordinate, IPlayer, Ship, Shot } from "../../../common/types";
-import { ShotEvent } from "../../../common/types";
+import type { Coordinate, IPlayer, Ship, Shot } from "../../../common/types.js";
+import { ShotEvent } from "../../../common/types.js";
 
 export default class Player implements IPlayer {
 	id: string;

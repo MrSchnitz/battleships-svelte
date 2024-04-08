@@ -9,7 +9,7 @@
 <a
 	{href}
 	class={classNames(
-		"block rounded-md px-3 py-2 text-base sm:text-sm font-medium transition-colors",
+		"block rounded-md px-3 py-2 text-base sm:text-sm font-medium transition-colors cursor-pointer",
 		isActive ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
 	)}
 	aria-current="page">{title}</a

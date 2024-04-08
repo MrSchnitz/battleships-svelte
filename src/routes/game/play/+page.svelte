@@ -1,11 +1,11 @@
 <script lang="ts">
 	import PlayBoard from "$lib/components/Board/PlayBoard.svelte";
-	import { getContext, onDestroy, onMount, setContext } from "svelte";
+	import { getContext, onDestroy, onMount } from "svelte";
 	import classNames from "classnames";
 	import SocketAPI from "../../../lib/SocketConnection";
-	import { getModalStore, getToastStore, ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
-	import { ShotEvent } from "../../../../common/types";
+	import { getModalStore, getToastStore } from "@skeletonlabs/skeleton";
 	import type { GameStat } from "../../../../common/types";
+	import { ShotEvent } from "../../../../common/types";
 	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "$lib/config/consts";
 	import WinGif from "$lib/images/win.gif";
 	import LoseGif from "$lib/images/lose.gif";
@@ -13,7 +13,6 @@
 	import RoomList from "../../../lib/components/Play/RoomList.svelte";
 	import PlayHeader from "$lib/components/Play/PlayHeader.svelte";
 	import TurnCounter from "$lib/components/Play/TurnCounter.svelte";
-	import { fade } from "svelte/transition";
 	import GameHeader from "$lib/components/Play/GameHeader.svelte";
 
 	const toastStore = getToastStore();
@@ -22,7 +21,7 @@
 	const { playerNick, board } = getContext("gameSetupContext");
 	const isConnectedToRoom = getContext("isConnectedToRoom");
 
-	let nick = sessionStorage.getItem("nick") ?? "";
+	let nick = $playerNick;
 
 	let rooms = [];
 	let yourRoom: string | null = sessionStorage.getItem("room") ?? null;
@@ -39,19 +38,15 @@
 			toastStore.trigger({
 				message: "Your turn ended"
 			});
-			SocketAPI.turnEnded($playerNick);
+			SocketAPI.turnEnded(nick);
 		}
 	}
 
-	$: isYourTurn = game?.playerTurn === $playerNick;
+	$: nick = $playerNick
+
+	$: isYourTurn = game?.playerTurn === nick;
 
 	$: $isConnectedToRoom = !!yourRoom;
-
-	$: {
-		if (yourRoom) {
-			setPlayBoardWidth();
-		}
-	}
 
 	onMount(() => {
 		SocketAPI.onAfterConnect(({ room, data, availableRooms }) => {
@@ -78,7 +73,7 @@
 			setYourRoom(data.room);
 			setGame(data.game);
 
-			if (data.game.playerTurn === $playerNick) {
+			if (data.game.playerTurn === nick) {
 				toastStore.trigger({
 					message: "Your turn"
 				});
@@ -88,7 +83,6 @@
 			setGame(res.game);
 		});
 		SocketAPI.onPlayerDisconnected(({ room, data, availableRooms }) => {
-			console.log("HMMMM");
 			toastStore.trigger({ message: "Other player disconnected..." });
 			setYourRoom(room);
 			game = data;
@@ -126,10 +120,15 @@
 	}
 
 	function setTurnTimeoutInterval(game: GameStat | null) {
-		if (game && game.playerTurn === $playerNick) {
+		if (game && game.playerTurn === nick) {
 			clearTimeoutInterval();
 			playerTurnTimeout = setInterval(() => timer--, TIMEOUT_INTERVAL);
 		}
+	}
+
+	function setYourRoom(room: string | null) {
+		yourRoom = room;
+		sessionStorage.setItem("room", room ?? "");
 	}
 
 	function setGame(newGame: GameStat | null) {
@@ -140,7 +139,7 @@
 				playShot(newGame);
 				game = { ...newGame, shot: null };
 				checkGameWin(newGame);
-			}, 2000);
+			}, 1000);
 		} else {
 			game = newGame;
 		}
@@ -166,7 +165,7 @@
 
 	function checkGameWin(game: GameStat | null) {
 		if (game?.win) {
-			const isYourWin = $playerNick === game.win;
+			const isYourWin = nick === game.win;
 
 			modalStore.trigger({
 				type: "alert",
@@ -184,14 +183,9 @@
 		}
 	}
 
-	function setYourRoom(room: string | null) {
-		yourRoom = room;
-		sessionStorage.setItem("room", room ?? "");
-	}
-
 	function onCreateRoom() {
 		SocketAPI.createRoom({
-			nick: $playerNick,
+			nick,
 			board: $board
 		});
 	}
@@ -199,14 +193,14 @@
 	function onJoinRoom(room) {
 		SocketAPI.joinRoom({
 			room,
-			nick: $playerNick,
+			nick,
 			board: $board
 		});
 	}
 
 	function onClick(x: number, y: number) {
 		clearTimeoutInterval();
-		SocketAPI.shoot({ nick: $playerNick, shot: { x, y } });
+		SocketAPI.shoot({ nick, shot: { x, y } });
 	}
 
 	function onLeave() {
@@ -256,7 +250,7 @@
 							currentShot={isYourTurn && (game?.shot?.coords ?? null)}
 							label={isYourTurn ? "Attack!" : "enemy ships"}
 							isActive={isYourTurn || game.win}
-							noActions={!game || game.playerTurn !== $playerNick || !!game.win}
+							noActions={!game || game.playerTurn !== nick || !!game.win}
 							{onClick}
 						/>
 					{:else}
