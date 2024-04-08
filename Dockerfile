@@ -20,5 +20,6 @@ COPY --from=builder /app/build ./build
 RUN npm install --production
 
 EXPOSE 3000
+USER nobody
 
 CMD ["node", "build/mainServer/server/server.js"]
