@@ -1,16 +1,14 @@
 import ioClient, { Socket } from "socket.io-client";
 import { SocketEvents } from "../../common/types";
 
-// const ENDPOINT = "http://localhost:3000";
-const ENDPOINT = "http://10.0.0.17:3000";
-// const ENDPOINT = 'http://192.168.1.115:3000';
+const DEFAULT_ENDPOINT = "http://localhost:3000";
 
 class SocketAPI {
 	private static instance: SocketAPI;
 	private socket: Socket;
 
 	private constructor() {
-		this.socket = ioClient(ENDPOINT);
+		this.socket = ioClient(window?.location?.host ?? DEFAULT_ENDPOINT);
 	}
 
 	public static getInstance(): SocketAPI {

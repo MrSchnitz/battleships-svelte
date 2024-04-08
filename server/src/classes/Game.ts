@@ -1,6 +1,6 @@
-import Player from "./Player";
-import type { Coordinate, GameStat, IGame, Shot } from "../../../common/types";
-import { ShipType, ShotEvent } from "../../../common/types";
+import Player from "./Player.js";
+import type { Coordinate, GameStat, IGame, Shot } from "../../../common/types.js";
+import { ShipType, ShotEvent } from "../../../common/types.js";
 
 export default class Game implements IGame {
 	players: Player[];
