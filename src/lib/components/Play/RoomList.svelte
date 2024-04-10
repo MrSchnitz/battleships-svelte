@@ -4,10 +4,11 @@
 	import { onMount } from "svelte";
 	import SocketAPI from "../../SocketConnection";
 	import { quintOut } from "svelte/easing";
+	import type { IRoom } from "../../../../common/types";
 
 	let rooms = [];
 
-	export let onJoinRoom: (room: string) => void;
+	export let onJoinRoom: (room: IRoom) => void;
 	export let onCreateRoom: () => void;
 
 	onMount(() => {
@@ -18,6 +19,10 @@
 			rooms = [...fetchedRooms];
 		});
 	});
+
+	function onRefresh() {
+		SocketAPI.getAvailableRooms();
+	}
 </script>
 
 <div class="h-full w-full grid sm:place-content-center">
@@ -29,14 +34,17 @@
 					<div transition:slide={{ duration: 300, opacity: 1, start: 0.5, easing: quintOut }}>
 						<ListBoxItem
 							name="medium"
-							value={room}
+							value={room.name}
 							rounded="border border-surface-800 rounded-token"
-							on:click={() => onJoinRoom(room)}>{room}</ListBoxItem
+							on:click={() => onJoinRoom(room)}>{room.name}</ListBoxItem
 						>
 					</div>
 				{/each}
 			</ListBox>
-			<button type="button" class="mt-4 w-full btn btn-sm variant-filled" on:click={onCreateRoom}
+			<button type="button" class="mt-4 w-full btn btn-sm variant-filled" on:click={onRefresh}
+				>Refresh</button
+			>
+			<button type="button" class="mt-2 w-full btn btn-sm variant-filled" on:click={onCreateRoom}
 				>Create room</button
 			>
 		</section>

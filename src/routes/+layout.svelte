@@ -13,7 +13,8 @@
 	import Icon from "@iconify/svelte";
 	import NavItem from "$lib/components/Navigation/NavItem.svelte";
 	import { page } from "$app/stores";
-	import classNames from "classnames";
+	import { clickOutside } from "$lib/utils/clickOutside";
+	import SocketAPI from "../lib/SocketConnection";
 
 	initializeStores();
 
@@ -22,6 +23,22 @@
 
 	function toggleMobileMenuOpen() {
 		isMobileMenuOpen = !isMobileMenuOpen;
+	}
+
+	function closeMobileMenu() {
+		isMobileMenuOpen = false;
+	}
+
+	function checkBeforeRedirect(event) {
+		const inGame = document.body.dataset.inGame;
+		if (inGame) {
+			if (confirm("Are you sure you want to leave?")) {
+				SocketAPI.applyDisconnect();
+				return;
+			}
+			event.preventDefault();
+			event.stopPropagation();
+		}
 	}
 </script>
 
@@ -64,14 +81,17 @@
 							</svg>
 						</button>
 					</div>
-					<div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+					<div
+						class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start"
+						on:click={checkBeforeRedirect}
+					>
 						<div class="flex flex-shrink-0 items-center">
 							<Icon icon="majesticons:ship" class="h-8 w-8 text-white" />
 							<h2 class="ml-4 h2 font-bold text-white cursor-pointer">
 								<a href="/">BattleShips</a>
 							</h2>
 						</div>
-						<div class="hidden sm:ml-6 sm:block">
+						<div class="hidden sm:ml-6 sm:block" use:clickOutside on:clickOutside={closeMobileMenu}>
 							<div class="flex space-x-4">
 								<NavItem href="/" title="Home" isActive={$page.url.pathname === "/"} />
 								<NavItem href="/game" title="Game" isActive={$page.url.pathname.includes("game")} />
@@ -88,7 +108,7 @@
 				style="max-height: {isMobileMenuOpen ? `${menuElement?.scrollHeight ?? 0}px` : 0}"
 				bind:this={menuElement}
 			>
-				<div class="space-y-1 px-2 pb-3 pt-2">
+				<div class="space-y-1 px-2 pb-3 pt-2" on:click={checkBeforeRedirect}>
 					<NavItem href="/" title="Home" isActive={$page.url.pathname === "/"} />
 					<NavItem href="/game" title="Game" isActive={$page.url.pathname.includes("game")} />
 				</div>

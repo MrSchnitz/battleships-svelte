@@ -4,7 +4,7 @@
 	import classNames from "classnames";
 	import SocketAPI from "../../../lib/SocketConnection";
 	import { getModalStore, getToastStore } from "@skeletonlabs/skeleton";
-	import type { GameStat } from "../../../../common/types";
+	import type { GameStat, IRoom } from "../../../../common/types";
 	import { ShotEvent } from "../../../../common/types";
 	import { GAME_BOARD_SIZE, TIMEOUT_INTERVAL, TIMEOUT_TIMER } from "$lib/config/consts";
 	import WinGif from "$lib/images/win.gif";
@@ -20,11 +20,11 @@
 
 	const { playerNick, board } = getContext("gameSetupContext");
 	const isConnectedToRoom = getContext("isConnectedToRoom");
+	const isInGame = getContext("isInGame");
 
-	let nick = $playerNick;
+	let nick = sessionStorage.getItem("nick") ?? "";
 
-	let rooms = [];
-	let yourRoom: string | null = sessionStorage.getItem("room") ?? null;
+	let yourRoom: IRoom | null = JSON.parse(sessionStorage.getItem("room")) ?? null;
 	let game: GameStat | null;
 	let playerTurnTimeout = null;
 	let timer = TIMEOUT_TIMER;
@@ -42,26 +42,24 @@
 		}
 	}
 
-	$: nick = $playerNick
+	// $: nick = $playerNick ?? nick;
 
 	$: isYourTurn = game?.playerTurn === nick;
-
 	$: $isConnectedToRoom = !!yourRoom;
+	$: {
+		document.body.dataset.inGame = String(!!yourRoom)
+	}
 
 	onMount(() => {
-		SocketAPI.onAfterConnect(({ room, data, availableRooms }) => {
+		SocketAPI.onAfterConnect(({ room, data }) => {
 			setYourRoom(room);
 			game = data;
-			rooms = [...availableRooms];
 
 			if (game) {
 				setTurnTimeoutInterval(game);
 			} else {
 				clearTimeoutInterval();
 			}
-		});
-		SocketAPI.onAvailableRooms((fetchedRooms) => {
-			rooms = [...fetchedRooms];
 		});
 		SocketAPI.onYourRoom((room) => {
 			setYourRoom(room);
@@ -82,16 +80,15 @@
 		SocketAPI.onShoot((res) => {
 			setGame(res.game);
 		});
-		SocketAPI.onPlayerDisconnected(({ room, data, availableRooms }) => {
+		SocketAPI.onPlayerDisconnected(({ room, data }) => {
 			toastStore.trigger({ message: "Other player disconnected..." });
 			setYourRoom(room);
 			game = data;
-			rooms = [...availableRooms];
 			clearTimeoutInterval();
 		});
 
 		SocketAPI.connect();
-		SocketAPI.afterConnect({ roomId: yourRoom, nick });
+		SocketAPI.afterConnect({ room: yourRoom, nick });
 	});
 
 	onDestroy(() => {
@@ -107,7 +104,6 @@
 	}
 
 	function clearState() {
-		rooms = [];
 		setYourRoom(null);
 		game = null;
 		clearTimeoutInterval();
@@ -126,9 +122,9 @@
 		}
 	}
 
-	function setYourRoom(room: string | null) {
+	function setYourRoom(room: IRoom | null) {
 		yourRoom = room;
-		sessionStorage.setItem("room", room ?? "");
+		sessionStorage.setItem("room", JSON.stringify(room));
 	}
 
 	function setGame(newGame: GameStat | null) {
@@ -242,7 +238,7 @@
 						<PlayBoard
 							className={classNames(
 								"md:translate-y-0",
-								game && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
+								game && !game.win && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
 							)}
 							size={GAME_BOARD_SIZE}
 							ships={game ? game.playerData.destroyedShips : []}

@@ -1,4 +1,5 @@
 import Player from "../server/src/classes/Player";
+import type Game from "../server/src/classes/Game";
 
 export enum SocketEvents {
 	AVAILABLE_ROOMS = "availableRooms",
@@ -12,6 +13,11 @@ export enum SocketEvents {
 	APPLY_DISCONNECT = "applyDisconnect",
 	PLAYER_DISCONNECTED = "playerDisconnected",
 	TURN_ENDED = "turnEnded"
+}
+
+export interface IRoom {
+	id: string;
+	name: string;
 }
 
 export interface IGame {

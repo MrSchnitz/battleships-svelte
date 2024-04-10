@@ -21,11 +21,7 @@
 	}
 
 	function onContinueClick() {
-		if ($isGameSet) {
-			setPlayerNick(nickInput, () => goto("game/play"));
-		} else {
-			setPlayerNick(nickInput, () => goto("game/create"));
-		}
+		setPlayerNick(nickInput, () => goto("game/create"));
 	}
 
 	function onKeyDown(event: KeyboardEvent) {

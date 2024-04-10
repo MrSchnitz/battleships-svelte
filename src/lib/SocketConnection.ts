@@ -1,5 +1,6 @@
 import ioClient, { Socket } from "socket.io-client";
 import { SocketEvents } from "../../common/types";
+import type { IRoom } from "../../common/types";
 
 const DEFAULT_ENDPOINT = "http://localhost:3000";
 
@@ -24,7 +25,7 @@ class SocketAPI {
 	public onAvailableRooms(callback: (rooms: string[]) => void) {
 		this.socket.on(SocketEvents.AVAILABLE_ROOMS, callback);
 	}
-	public onYourRoom(callback: (room: string | null) => void) {
+	public onYourRoom(callback: (room: IRoom | null) => void) {
 		this.socket.on(SocketEvents.YOUR_ROOM, callback);
 	}
 	public onRoomReady(callback: (data: any) => void) {
@@ -58,6 +59,10 @@ class SocketAPI {
 
 	public applyDisconnect() {
 		this.socket.emit(SocketEvents.APPLY_DISCONNECT);
+	}
+
+	public getAvailableRooms() {
+		this.socket.emit(SocketEvents.AVAILABLE_ROOMS);
 	}
 
 	public createRoom(data: any) {

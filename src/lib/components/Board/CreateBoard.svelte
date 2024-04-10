@@ -128,7 +128,7 @@
 			>
 				<div
 					class={classNames(
-						"flex items-start gap-2.5 w-[15vmax] h-[24vmax] md:h-full",
+						"flex items-start justify-end gap-2.5 w-[15vmax] md:h-full",
 						isRotated ? "flex-row" : "flex-col"
 					)}
 				>
