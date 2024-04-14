@@ -8,10 +8,13 @@
 	import type { Ship, ShipCoordinate, ShipType } from "../../../../common/types";
 	import type { ShipDragDimension } from "$lib/config/types";
 	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
-	import { slide, fade } from "svelte/transition";
-	import { quintOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 	import MediaQuery from "svelte-media-queries";
-	import { checkIfShipCoordinateMatch, findShipByCoordinates } from "$lib/utils/utils";
+	import {
+		checkIfShipCoordinateMatch,
+		checkShipCoordinates,
+		findShipByCoordinates
+	} from "$lib/utils/utils";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
@@ -160,20 +163,11 @@
 						<Cell
 							x={item.x}
 							y={item.y}
-							shipType={selectedShips.find((selectedShip) =>
-								selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-							)?.type ?? activeShipType}
+							shipType={findShipByCoordinates(selectedShips, item)?.type ?? activeShipType}
 							{dragPosition}
-							isSelected={Boolean(
-								selectedShips.find((selectedShip) =>
-									selectedShip.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-								)
-							)}
-							isActive={Boolean(hoveredCells.find((c) => c.x === item.x && c.y === item.y))}
-							isDelete={!isOnDuplicated &&
-								Boolean(
-									shipToDelete?.coords.find((coord) => coord.x === item.x && coord.y === item.y)
-								)}
+							isSelected={Boolean(findShipByCoordinates(selectedShips, item))}
+							isActive={checkIfShipCoordinateMatch(hoveredCells, item)}
+							isDelete={!isOnDuplicated && shipToDelete && checkShipCoordinates(shipToDelete, item)}
 							{onDragHover}
 							{onDragBlur}
 							{onHover}
