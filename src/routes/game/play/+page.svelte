@@ -20,10 +20,8 @@
 
 	const { playerNick, board } = getContext("gameSetupContext");
 	const isConnectedToRoom = getContext("isConnectedToRoom");
-	const isInGame = getContext("isInGame");
 
-	let nick = sessionStorage.getItem("nick") ?? "";
-
+	let nick: string = sessionStorage.getItem("nick") ?? "";
 	let yourRoom: IRoom | null = JSON.parse(sessionStorage.getItem("room")) ?? null;
 	let game: GameStat | null;
 	let playerTurnTimeout = null;
@@ -41,14 +39,9 @@
 			SocketAPI.turnEnded(nick);
 		}
 	}
-
-	// $: nick = $playerNick ?? nick;
-
 	$: isYourTurn = game?.playerTurn === nick;
 	$: $isConnectedToRoom = !!yourRoom;
-	$: {
-		document.body.dataset.inGame = String(!!yourRoom)
-	}
+	$: document.body.dataset.inGame = String(!!yourRoom);
 
 	onMount(() => {
 		SocketAPI.onAfterConnect(({ room, data }) => {
@@ -229,7 +222,7 @@
 						size={GAME_BOARD_SIZE}
 						ships={game ? game.playerData.ships : $board}
 						shots={game ? game.playerData.enemyShots : []}
-						currentShot={!isYourTurn && (game?.shot?.coords ?? null)}
+						currentShot={!isYourTurn && (game?.shot ?? null)}
 						label="Your ships"
 						noActions={true}
 						on:dim={setPlayBoardWidth}
@@ -243,7 +236,7 @@
 							size={GAME_BOARD_SIZE}
 							ships={game ? game.playerData.destroyedShips : []}
 							shots={game ? game.playerData.shots : []}
-							currentShot={isYourTurn && (game?.shot?.coords ?? null)}
+							currentShot={isYourTurn && (game?.shot ?? null)}
 							label={isYourTurn ? "Attack!" : "enemy ships"}
 							isActive={isYourTurn || game.win}
 							noActions={!game || game.playerTurn !== nick || !!game.win}

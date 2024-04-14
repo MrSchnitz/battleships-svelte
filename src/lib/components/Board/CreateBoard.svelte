@@ -10,6 +10,8 @@
 	import BoardWrapper from "$lib/components/Board/BoardWrapper.svelte";
 	import { slide, fade } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
+	import MediaQuery from "svelte-media-queries";
+	import { checkIfShipCoordinateMatch, findShipByCoordinates } from "$lib/utils/utils";
 
 	let SHIPS = DEFAULT_SHIPS;
 	let dragPosition: ShipDragDimension = { top: null, bottom: null, left: null, right: null };
@@ -19,6 +21,7 @@
 	let mousePosition: { x: number; y: number } | null = null;
 	let isRotated: boolean = false;
 	let activeShipType: ShipType | null = null;
+	let shipSectionHeight: string = "24vmax";
 
 	export let size: number = 0;
 	export let addShip: (ship: Ship) => void = null;
@@ -33,6 +36,7 @@
 		SHIPS = DEFAULT_SHIPS.flatMap((ship) =>
 			selectedShips.some((selectedShip) => selectedShip.type === ship) ? [] : ship
 		);
+		shipSectionHeight = `${isRotated ? 18 : SHIPS.length * 5}vmax`;
 	}
 
 	function onShipDragStart(shipType: ShipType) {
@@ -57,7 +61,7 @@
 	}
 
 	function onDragHover(x: number, y: number) {
-		if (!hoveredCells.some((hoveredCell) => hoveredCell.x === x && hoveredCell.y === y)) {
+		if (!checkIfShipCoordinateMatch(hoveredCells, { x, y })) {
 			hoveredCells = [...hoveredCells, { x, y, hit: false }];
 		}
 	}
@@ -79,11 +83,7 @@
 			return;
 		}
 
-		const { x, y } = coordinates;
-
-		const foundShip = selectedShips.find((selectedShip) =>
-			selectedShip.coords.find((coord) => coord.x === x && coord.y === y)
-		);
+		const foundShip = findShipByCoordinates(selectedShips, coordinates);
 
 		if (foundShip && !activeShipType) {
 			shipToDelete = foundShip;
@@ -122,33 +122,36 @@
 <div>
 	<div class="flex flex-col sm:flex-row">
 		{#if !isGameSet}
-			<div
-				transition:slide={{ duration: 500, axis: "x" }}
-				class="flex flex-col justify-between p-4 sm:p-0 mb-3 sm:mb-0 md:mr-16"
-			>
+			<MediaQuery query="(max-width: 640px)" let:matches>
 				<div
-					class={classNames(
-						"flex items-start justify-end gap-2.5 w-[15vmax] md:h-full",
-						isRotated ? "flex-row" : "flex-col"
-					)}
+					transition:slide={{ duration: 500, axis: matches ? "y" : "x" }}
+					class="flex flex-col justify-between p-4 sm:p-0 mb-3 sm:mb-0 md:mr-16"
 				>
-					{#each SHIPS as type, i}
-						<ShipDrag
-							onDragMove={onShipDragMove}
-							onDragStart={() => onShipDragStart(type)}
-							onDragEnd={() => onShipDragEnd(type)}
-						>
-							<ShipCreator {type} {isRotated} />
-						</ShipDrag>
-					{/each}
+					<div
+						class={classNames(
+							"flex items-start md:justify-start gap-2.5 w-[15vmax] transition-[height] duration-300",
+							isRotated ? "flex-row justify-start" : "flex-col justify-end"
+						)}
+						style="height:{matches ? shipSectionHeight : '100%'}"
+					>
+						{#each SHIPS as type, i}
+							<ShipDrag
+								onDragMove={onShipDragMove}
+								onDragStart={() => onShipDragStart(type)}
+								onDragEnd={() => onShipDragEnd(type)}
+							>
+								<ShipCreator {type} {isRotated} />
+							</ShipDrag>
+						{/each}
+					</div>
+					<button class="mt-4 btn btn-sm variant-filled" on:click={toggleRotated}
+						>Rotate ships</button
+					>
+					<button class="mt-2 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
+						>Random set</button
+					>
 				</div>
-				<button class="mt-4 btn btn-sm variant-filled-primary" on:click={toggleRotated}
-					>Rotate ships</button
-				>
-				<button class="mt-2 btn btn-sm variant-filled-secondary" on:click={randomizeShips}
-					>Random set</button
-				>
-			</div>
+			</MediaQuery>
 		{/if}
 		<div>
 			<BoardWrapper {size}>

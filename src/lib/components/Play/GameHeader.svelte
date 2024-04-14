@@ -12,20 +12,20 @@
 {#if game && !game?.win}
 	<div class="card-header">
 		<h3 class="relative h3 text-center font-bold mb-4 flex justify-center">
-			<span class="invisible"> hmm</span>
+			<span class="invisible">_</span>
 			{#if isYourTurn}
 				<span
 					class="absolute"
-					in:scale={{ duration: 500, delay: 300 }}
-					out:scale={{ duration: 300 }}
+					in:scale={{ duration: 500, delay: 1500 }}
+					out:scale={{ duration: 300, delay: 1000 }}
 				>
 					Your turn</span
 				>
 			{:else}
 				<span
 					class="absolute"
-					in:scale={{ duration: 500, delay: 300 }}
-					out:scale={{ duration: 300 }}
+					in:scale={{ duration: 500, delay: 1500 }}
+					out:scale={{ duration: 300, delay: 1000 }}
 				>
 					Enemy turn</span
 				>

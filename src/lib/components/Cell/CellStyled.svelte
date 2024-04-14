@@ -24,41 +24,11 @@
 			innerClassName
 		)}
 		style="background-color: {color}"
-	/>
+	></div>
 </div>
 
 <style>
 	.cell-styled {
 		background-color: hsl(200, 100%, 50%);
-		/*outline: 0.1vmax solid rgba(255, 255, 255, 1);*/
-	}
-
-	.hmm {
-		background-image: -webkit-radial-gradient(
-			center 0.2vmax,
-			1vmax 2vmax,
-			#ffffff 60%,
-			#0099ff 40%
-		);
-
-		background-size: 0.8vmax 3vmax;
-
-		-webkit-text-fill-color: transparent;
-		-webkit-animation-name: wave-animation;
-		-webkit-animation-duration: 3s;
-		-webkit-animation-iteration-count: infinite;
-		-webkit-animation-timing-function: linear;
-	}
-
-	@keyframes wave-animation {
-		0% {
-			background-position: 2.5vmax 0;
-		}
-		50% {
-			background-position: 1.5vmax -0.1vmax;
-		}
-		100% {
-			background-position: 2.5vmax 0;
-		}
 	}
 </style>

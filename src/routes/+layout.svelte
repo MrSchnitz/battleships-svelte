@@ -30,7 +30,7 @@
 	}
 
 	function checkBeforeRedirect(event) {
-		const inGame = document.body.dataset.inGame;
+		const inGame = document.body.dataset.inGame === "true";
 		if (inGame) {
 			if (confirm("Are you sure you want to leave?")) {
 				SocketAPI.applyDisconnect();
@@ -118,11 +118,4 @@
 	<main class="bg-surface-200 h-full">
 		<slot />
 	</main>
-	<!-- ---- / ---- -->
-	<!-- (pageFooter) -->
-	<!--	<svelte:fragment slot="footer"-->
-	<!--		><footer class="bg-surface-800 p-2 text-xs text-white">-->
-	<!--			All rights reserved.-->
-	<!--		</footer></svelte:fragment-->
-	<!--	>-->
 </AppShell>

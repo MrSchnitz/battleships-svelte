@@ -112,9 +112,6 @@
 					<span>Play</span>
 				</AppRailAnchor>
 			{/if}
-			<!--			<svelte:fragment slot="trail">-->
-			<!--				<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>-->
-			<!--			</svelte:fragment>-->
 		</AppRail>
 	</div>
 	<div
