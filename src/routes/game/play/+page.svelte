@@ -217,7 +217,9 @@
 					<PlayBoard
 						className={classNames(
 							"md:translate-y-0",
-							game && isYourTurn ? "translate-y-[106%]" : "translate-y-0 relative z-10"
+							game && (isYourTurn || game.win !== null)
+								? "translate-y-[106%]"
+								: "translate-y-0 relative z-10"
 						)}
 						size={GAME_BOARD_SIZE}
 						ships={game ? game.playerData.ships : $board}
@@ -231,13 +233,13 @@
 						<PlayBoard
 							className={classNames(
 								"md:translate-y-0",
-								game && !game.win && isYourTurn ? "translate-y-[-106%]" : "translate-y-0"
+								game && (isYourTurn || game.win !== null) ? "translate-y-[-106%]" : "translate-y-0"
 							)}
 							size={GAME_BOARD_SIZE}
 							ships={game ? game.playerData.destroyedShips : []}
 							shots={game ? game.playerData.shots : []}
 							currentShot={isYourTurn && (game?.shot ?? null)}
-							label={isYourTurn ? "Attack!" : "enemy ships"}
+							label={isYourTurn && game?.win === null ? "Attack!" : "enemy ships"}
 							isActive={isYourTurn || game.win}
 							noActions={!game || game.playerTurn !== nick || !!game.win}
 							{onClick}

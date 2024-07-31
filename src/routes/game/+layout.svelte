@@ -9,6 +9,8 @@
 	import classNames from "classnames";
 	import { GAME_BOARD_SIZE } from "$lib/config/consts";
 	import { placeShipsRandomly } from "$lib/utils/placeShipsRandomly";
+	import { goto } from "$app/navigation";
+	import { ROUTES } from "$lib/routes";
 
 	const selectedShips = writable([]);
 	const gameSetup = writable({
@@ -38,6 +40,7 @@
 	}
 	function resetShips() {
 		selectedShips.set([]);
+		sessionStorage.setItem("board", JSON.stringify([]));
 	}
 	function randomizeShips() {
 		const randomShips = placeShipsRandomly(GAME_BOARD_SIZE);
@@ -79,6 +82,28 @@
 			isGameSet: DEFAULT_SHIPS.length === $selectedShips.length
 		}));
 	}
+
+	$: {
+		setTimeout(() => {
+			switch ($page.url.pathname) {
+				case ROUTES.GAME_CREATE:
+					if (!$gameSetup.playerNick) {
+						goto(ROUTES.GAME);
+					}
+					break;
+				case ROUTES.GAME_PLAY:
+					if (!$gameSetup.isGameSet) {
+						if (!$gameSetup.playerNick) {
+							goto(ROUTES.GAME);
+						}
+						goto(ROUTES.GAME_CREATE);
+					}
+					break;
+				default:
+					break;
+			}
+		}, 0);
+	}
 </script>
 
 <div class="relative h-full">
@@ -88,7 +113,7 @@
 				$isConnectedToRoom ? "w-0" : "h-full w-12 sm:w-24"
 			}`}
 		>
-			<AppRailAnchor href="/game" selected={$page.url.pathname === "/game"}>
+			<AppRailAnchor href={ROUTES.GAME} selected={$page.url.pathname === ROUTES.GAME}>
 				<svelte:fragment slot="lead"
 					><Icon icon="fe:user" class="text-2xl sm:text-4xl" /></svelte:fragment
 				>
@@ -96,7 +121,10 @@
 			</AppRailAnchor>
 
 			{#if $gameSetup.playerNick}
-				<AppRailAnchor href="/game/create" selected={$page.url.pathname === "/game/create"}>
+				<AppRailAnchor
+					href={ROUTES.GAME_CREATE}
+					selected={$page.url.pathname === ROUTES.GAME_CREATE}
+				>
 					<svelte:fragment slot="lead"
 						><Icon icon="fe:map" class="text-2xl sm:text-4xl" /></svelte:fragment
 					>
@@ -105,7 +133,7 @@
 			{/if}
 
 			{#if $gameSetup.isGameSet}
-				<AppRailAnchor href="/game/play" selected={$page.url.pathname === "/game/play"}>
+				<AppRailAnchor href={ROUTES.GAME_PLAY} selected={$page.url.pathname === ROUTES.GAME_PLAY}>
 					<svelte:fragment slot="lead"
 						><Icon icon="fe:gamepad" class="text-2xl sm:text-4xl" /></svelte:fragment
 					>
@@ -122,9 +150,9 @@
 	>
 		<AppBar padding="px-3 py-2 md:p-4">
 			<svelte:fragment slot="lead">
-				{#if $page.url.pathname === "/game"}
+				{#if $page.url.pathname === ROUTES.GAME}
 					<h1 class="text-center md:text-xl uppercase">Setup nick</h1>
-				{:else if $page.url.pathname === "/game/create"}
+				{:else if $page.url.pathname === ROUTES.GAME_CREATE}
 					<h1 class="text-center md:text-xl uppercase">Deploy your ships</h1>
 				{:else}
 					<h1 class="text-center md:text-xl uppercase">Play</h1>
